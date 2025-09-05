@@ -1,6 +1,7 @@
-using Godot;
 using System;
 using System.Collections.Generic;
+using Godot;
+using Godot.Collections;
 
 public enum MouseOptions
 {
@@ -8,10 +9,10 @@ public enum MouseOptions
   AStar_NodeInfo,
   DirectedGraph_ToParent,
   Character_Select,
-};
+}
 
 
-public class DebugManager : Node2D
+public partial class DebugManager : Node2D
 {
 
   public void MouseOptionsSelected_Callback(int index)
@@ -48,8 +49,8 @@ public class DebugManager : Node2D
   public Camera2D debugCamera;
   public Camera2D playerCamera;
 
-  public bool setAStarStart = false;
-  public bool setAStarDest = false;
+  public bool setAStarStart;
+  public bool setAStarDest;
   public AStar.PathState AStarState = AStar.PathState.None;
   public Vector2 AStarStart;
   public Vector2 AStarDest;
@@ -83,12 +84,12 @@ public class DebugManager : Node2D
 
   public TestLevelGeneration testLevelGeneration;
 
-  public bool playerMode = false;
+  public bool playerMode;
 
   InputManager inputManager;
   PlayerManager playerManager;
 
-  Physics2DDirectSpaceState spaceState;
+  PhysicsDirectSpaceState2D spaceState;
 
 #endregion
 
@@ -145,8 +146,8 @@ public class DebugManager : Node2D
     //Path the enemy to the player
     
     (currentMouseSelectionCharacter as Enemy).pather.InitPather(
-      testLevelGeneration.ForegroundMap.WorldToMap(currentMouseSelectionCharacter.GlobalPosition),
-      testLevelGeneration.ForegroundMap.WorldToMap(playerManager.topDownPlayer.GlobalPosition),
+      testLevelGeneration.ForegroundMap.LocalToMap(currentMouseSelectionCharacter.GlobalPosition),
+      testLevelGeneration.ForegroundMap.LocalToMap(playerManager.topDownPlayer.GlobalPosition),
        new AStar.AStarMap(testLevelGeneration.terrainMap, testLevelGeneration.width, testLevelGeneration.height)); 
     if((currentMouseSelectionCharacter as Enemy).pather.GeneratePath() == AStar.PathState.Found)
     {
@@ -155,7 +156,7 @@ public class DebugManager : Node2D
       //Translate to world position
       foreach (var item in (currentMouseSelectionCharacter as Enemy).pather.path)
       {
-        worldPosPath.Add(testLevelGeneration.ForegroundMap.MapToWorld(item));
+        worldPosPath.Add(testLevelGeneration.ForegroundMap.MapToLocal((Vector2I)item));
       }
       (currentMouseSelectionCharacter as Enemy).movementPath = worldPosPath;
     }
@@ -190,21 +191,18 @@ public class DebugManager : Node2D
     playerMode = _playerMode;
     if(playerMode)
     {
-      debugCamera.Current = false;
       (debugCamera as CameraMovement).movementEnabled = false;
       DebugUI.Visible = false;
       MouseInfoUI.Visible = false;
       if(playerCamera != null)
-        playerCamera.Current = true;
+        playerCamera.MakeCurrent();
     }
     else
     {
       (debugCamera as CameraMovement).movementEnabled = true;
-      debugCamera.Current = true;
+      debugCamera.MakeCurrent();
       DebugUI.Visible = true;
       MouseInfoUI.Visible = true;
-      if(playerCamera != null)
-        playerCamera.Current = false;
     }
   }
 
@@ -214,10 +212,10 @@ public class DebugManager : Node2D
 
     if(currentMouseOption == MouseOptions.DirectedGraph_ToParent)
     {
-      if (@inputEvent is InputEventMouseButton mouseClick && (mouseClick.Pressed && mouseClick.ButtonIndex == (int)Godot.ButtonList.Left))
+      if (inputEvent is InputEventMouseButton mouseClick && (mouseClick.Pressed && mouseClick.ButtonIndex == MouseButton.Left))
       {
         //World space -> Map space where coordinates are
-        Vector2 clickedPos = testLevelGeneration.ForegroundMap.WorldToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
+        Vector2 clickedPos = testLevelGeneration.ForegroundMap.LocalToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
         ChokePointFinder.CPFNode foundNode;
         if(testLevelGeneration.FindNodeAtPos(clickedPos, testLevelGeneration.cpfRootNode, out foundNode))
         {
@@ -230,28 +228,28 @@ public class DebugManager : Node2D
     }
     else if (currentMouseOption == MouseOptions.AStar_Pathfind)
     {
-      if(@inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed)
+      if(inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed)
       {
-        if (mouseClick.ButtonIndex == (int)Godot.ButtonList.Right)
+        if (mouseClick.ButtonIndex == MouseButton.Right)
         {
           AStarState = AStar.PathState.None;
-          Vector2 newAStarDest = testLevelGeneration.ForegroundMap.WorldToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
+          Vector2 newAStarDest = testLevelGeneration.ForegroundMap.LocalToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
 
-          if(newAStarDest.x >= testLevelGeneration.width || newAStarDest.x <= 0)
+          if(newAStarDest.X >= testLevelGeneration.width || newAStarDest.X <= 0)
             return;
-          if(newAStarDest.y >= testLevelGeneration.height || newAStarDest.y <= 0)
+          if(newAStarDest.Y >= testLevelGeneration.height || newAStarDest.Y <= 0)
             return;
             
           //Don't allow walls to be set as dest or start
-          if(testLevelGeneration.terrainMap[(int)newAStarDest.x,(int)newAStarDest.y] == 0)
+          if(testLevelGeneration.terrainMap[(int)newAStarDest.X,(int)newAStarDest.Y] == 0)
           {
             //Remove old one
-            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell((int)AStarDest.x,(int)AStarDest.y, -1);
+            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell(0,new Vector2I((int)AStarDest.X,(int)AStarDest.Y), -1);
 
             AStarDest = newAStarDest;
             //Set dest
             setAStarDest = true;
-            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell((int)AStarDest.x,(int)AStarDest.y, 11);
+            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell(0,new Vector2I((int)AStarDest.X,(int)AStarDest.Y), 11);
           }
           else
           {
@@ -260,25 +258,25 @@ public class DebugManager : Node2D
           }
         }
 
-        if (mouseClick.ButtonIndex == (int)Godot.ButtonList.Left)
+        if (mouseClick.ButtonIndex == MouseButton.Left)
         {
           AStarState = AStar.PathState.None;
-          Vector2 newAStarStart = testLevelGeneration.ForegroundMap.WorldToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
+          Vector2 newAStarStart = testLevelGeneration.ForegroundMap.LocalToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition());
 
-          if(newAStarStart.x >= testLevelGeneration.width || newAStarStart.x <= 0)
+          if(newAStarStart.X >= testLevelGeneration.width || newAStarStart.X <= 0)
             return;
-          if(newAStarStart.y >= testLevelGeneration.height || newAStarStart.y <= 0)
+          if(newAStarStart.Y >= testLevelGeneration.height || newAStarStart.Y <= 0)
             return;
             
           //Dont allow walls to be set as dest or start
-          if(testLevelGeneration.terrainMap[(int)newAStarStart.x,(int)newAStarStart.y] == 0)
+          if(testLevelGeneration.terrainMap[(int)newAStarStart.X,(int)newAStarStart.Y] == 0)
           {
-            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell((int)AStarStart.x,(int)AStarStart.y, -1);
+            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell(0, (Vector2I)AStarStart);
 
             AStarStart = newAStarStart;
             //Set start
             setAStarStart = true;
-            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell((int)AStarStart.x,(int)AStarStart.y, 4);
+            testLevelGeneration.VisualizationMaps["AStar Overlay"].SetCell(0, (Vector2I)AStarStart, 4);
           }
           else
           {
@@ -307,11 +305,11 @@ public class DebugManager : Node2D
     }
     else if (currentMouseOption == MouseOptions.AStar_NodeInfo)
     {
-      if(@inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed && mouseClick.ButtonIndex == (int)Godot.ButtonList.Left)
+      if(inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed && mouseClick.ButtonIndex == MouseButton.Left)
       {
         if(testLevelGeneration.AStarPather.map != null)
         {
-          currentMouseSelectionNode = testLevelGeneration.AStarPather.map.GetNodeAt(testLevelGeneration.ForegroundMap.WorldToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition()));
+          currentMouseSelectionNode = testLevelGeneration.AStarPather.map.GetNodeAt(testLevelGeneration.ForegroundMap.LocalToMap(testLevelGeneration.ForegroundMap.GetLocalMousePosition()));
         }
 
         UpdateMouseInfoUI();
@@ -319,15 +317,15 @@ public class DebugManager : Node2D
     }
     else if(currentMouseOption == MouseOptions.Character_Select)
     {
-      if(@inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed && mouseClick.ButtonIndex == (int)Godot.ButtonList.Left)
+      if(inputEvent is InputEventMouseButton mouseClick && mouseClick.Pressed && mouseClick.ButtonIndex == MouseButton.Left)
       {
         //Returns some JSON type stuff????
-        var result = spaceState.IntersectPoint(GetGlobalMousePosition(),32, new Godot.Collections.Array { this });
+        var result = spaceState.IntersectPoint(new PhysicsPointQueryParameters2D{Position = GetGlobalMousePosition()});
 
         
-        foreach (Godot.Collections.Dictionary item in result)
+        foreach (Dictionary item in result)
         {
-          Console.WriteLine("Point intersected with: " + item.ToString() + " Is of type " + item["collider"].GetType().ToString());
+          Console.WriteLine("Point intersected with: " + item + " Is of type " + item["collider"].GetType());
         }
 
         
@@ -336,15 +334,15 @@ public class DebugManager : Node2D
       }
     }
 
-    if(inputManager.IsKeyPressed(KeyList.M))
+    if(inputManager.IsKeyPressed(Key.M))
     {
       SetPlayerMode(!playerMode);
     }
   }
   
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
-    spaceState = GetWorld2d().DirectSpaceState;
+    spaceState = GetWorld2D().DirectSpaceState;
 
   }
 }

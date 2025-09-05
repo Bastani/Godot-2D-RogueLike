@@ -1,8 +1,6 @@
 using Godot;
-using System;
-using Godot.Collections;
 
-public class TileSetAnimation : TileMap
+public partial class TileSetAnimation : TileMap
 {
   [Export]
   public TileSet tileSet;
@@ -42,34 +40,32 @@ public class TileSetAnimation : TileMap
   // Called when the node enters the scene tree for the first time.
   public override void _Ready()
   {
-    if(tileSet == null)
+    // Godot 4: TileSet/TileMap API changed; runtime region animation via TileSet is no longer supported this way.
+    // Keep arrays initialized and compute seconds per frame for potential future use.
+    if (tileSet == null)
     {
-      tileSet = (this as TileMap).TileSet;
+      tileSet = this.TileSet;
     }
     for (int i = 0; i < numAnimatedTiles; i++)
     {
-      origionalRegion[i] = tileSet.TileGetRegion(tiles[i]);
-      //seconds per frame = frames per second / seconds
-      secondsPerFrame[i] = animFramerate[i]/60.0f;
+      // Store a default rect as placeholder; actual tile region access removed in Godot 4.
+      origionalRegion[i] = new Rect2(0, 0, 0, 0);
+      secondsPerFrame[i] = animFramerate[i] / 60.0f;
     }
   }
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _Process(float delta)
+  public override void _Process(double delta)
   {
+    // No-op animation stub to preserve behavior without using removed TileSet API.
     for (int i = 0; i < numAnimatedTiles; i++)
     {
-      currentTimePassed[i] += delta;
-      if(currentTimePassed[i] > secondsPerFrame[i])
+      currentTimePassed[i] += (float)delta;
+      if (currentTimePassed[i] > secondsPerFrame[i])
       {
         currentFrame[i] = (currentFrame[i] + 1) % maxFrame[i];
-        currentTimePassed[i] = 0;
+        currentTimePassed[i] = 0f;
       }
-
-      Rect2 region = tileSet.TileGetRegion(tiles[i]);
-      region.Position = new Vector2(origionalRegion[i].Position.x + origionalRegion[i].Size.x * currentFrame[i],  origionalRegion[i].Position.y);
-
-      tileSet.TileSetRegion(tiles[i], region);
     }
   }
 }

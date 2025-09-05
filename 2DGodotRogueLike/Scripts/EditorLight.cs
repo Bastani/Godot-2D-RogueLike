@@ -1,33 +1,32 @@
 using Godot;
-using System;
 
-public class EditorLight : Node2D
+public partial class EditorLight : Node2D
 {
-    public Sprite spriteToLight;
+    public Sprite2D spriteToLight;
     public Node2D parentNode;
 
     [Export]
-    public float rotateSpeed = 1.0f;
+    public double rotateSpeed = 1.0f;
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         if(spriteToLight == null)
         {
-            spriteToLight = GetParent().GetParent() as Sprite;
+            spriteToLight = GetParent().GetParent() as Sprite2D;
         }
         parentNode = GetParent() as Node2D;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(float delta)
+    public override void _Process(double delta)
     {
-        parentNode.Rotate(rotateSpeed * delta);
-        Rotate(-rotateSpeed  * delta);
+        parentNode.Rotate((float)(rotateSpeed * delta));
+        Rotate((float)(-rotateSpeed * delta));
 
         //if(spriteToLight != null)
         //{
         //    Vector2 lightDir = GlobalPosition - spriteToLight.GlobalPosition;
-        //    (spriteToLight.Material as ShaderMaterial)?.SetShaderParam("basicLightDir", new Vector3(lightDir.x,-lightDir.y,5));
+        //    (spriteToLight.Material as ShaderMaterial)?.SetShaderParameter("basicLightDir", new Vector3(lightDir.X,-lightDir.Y,5));
         //}
     }
 }

@@ -1,7 +1,7 @@
-using Godot;
 using System;
+using Godot;
 
-public class Interactable : Node2D
+public partial class Interactable : Node2D
 {
 
   [Export]
@@ -9,16 +9,16 @@ public class Interactable : Node2D
 
   protected PlayerManager playerManager;
   protected Random random = new Random();
-  protected bool inRange = false;
+  protected bool inRange;
 
-  public AnimatedSprite animatedSprite;
+  public AnimatedSprite2D animatedSprite;
   public ShaderMaterial shaderMaterial;
 
-  public bool playerInteracting = false;
+  public bool playerInteracting;
 
   public bool toggleableInteractable = false;
   
-  bool ModulateColorDebug = false;
+  bool ModulateColorDebug;
 
 
 
@@ -26,7 +26,7 @@ public class Interactable : Node2D
   public override void _Ready()
   {
     playerManager = GetNode<PlayerManager>("/root/PlayerManagerSingletonNode");
-    animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
+    animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite");
     shaderMaterial = animatedSprite.Material as ShaderMaterial;
   }
 
@@ -34,7 +34,7 @@ public class Interactable : Node2D
   {
     if(shaderMaterial != null)
     {
-      shaderMaterial.SetShaderParam("blinking", true);
+      shaderMaterial.SetShaderParameter("blinking", true);
     }
   }
 
@@ -42,7 +42,7 @@ public class Interactable : Node2D
   {
     if(shaderMaterial != null)
     {
-      shaderMaterial.SetShaderParam("blinking", false);
+      shaderMaterial.SetShaderParameter("blinking", false);
     }
   }
 
@@ -54,7 +54,7 @@ public class Interactable : Node2D
     playerManager.topDownPlayer.interactablesInRange.Add(this);
 
     if(ModulateColorDebug)
-      Modulate = new Color(0.5f,1,0.5f,1);
+      Modulate = new Color(0.5f,1,0.5f);
   }
 
   public void ExitedInteractionRadius()
@@ -64,7 +64,7 @@ public class Interactable : Node2D
       playerManager.topDownPlayer.interactablesInRange.Remove(this);
 
     if(ModulateColorDebug)
-      Modulate = new Color(1,1,1,1);
+      Modulate = new Color(1,1,1);
     inRange = false;
   }
 
@@ -115,7 +115,7 @@ public class Interactable : Node2D
 
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     float distanceToPlayerSquared = float.MaxValue;
 
@@ -125,7 +125,7 @@ public class Interactable : Node2D
     //If player within aggro radius
     if(distanceToPlayerSquared < interactionRadius * interactionRadius)
     {
-      if(inRange == false)
+      if(!inRange)
       {
         EnteredInteractionRadius();
       }

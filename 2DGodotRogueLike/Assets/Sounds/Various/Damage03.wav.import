@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Damage03.wav-0e13b11a54c7b67dcf9142f0245f749c.sample"
+type="AudioStreamWAV"
+uid="uid://dqmhahfu2tf7q"
+path="res://.godot/imported/Damage03.wav-0e13b11a54c7b67dcf9142f0245f749c.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Damage03.wav"
-dest_files=[ "res://.import/Damage03.wav-0e13b11a54c7b67dcf9142f0245f749c.sample" ]
+dest_files=["res://.godot/imported/Damage03.wav-0e13b11a54c7b67dcf9142f0245f749c.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

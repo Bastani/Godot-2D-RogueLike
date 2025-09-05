@@ -1,18 +1,19 @@
-using Godot;
 using System;
 using System.Collections.Generic;
+using Materials;
+using Parts;
 
 public class Inventory
 {
   //How to deal with stack sizes?
-  Dictionary<Materials.Material, int> stackableItems = new Dictionary<Materials.Material, int>();
-  System.Collections.Generic.List<Tuple<string, Parts.ConstructedWeapon>> uniqueItems = new System.Collections.Generic.List<Tuple<string, Parts.ConstructedWeapon>>();
+  Dictionary<Material, int> stackableItems = new Dictionary<Material, int>();
+  List<Tuple<string, ConstructedWeapon>> uniqueItems = new List<Tuple<string, ConstructedWeapon>>();
 
   protected PlayerManager playerManager;
 
   bool ranFirstTimeInit = false;
 
-  public void AddMaterial(Materials.Material material, int count)
+  public void AddMaterial(Material material, int count)
   {
     int currVal = 0;
     if(stackableItems.TryGetValue(material, out currVal))
@@ -23,16 +24,16 @@ public class Inventory
     { 
       stackableItems.Add(material, count);
     }
-    Console.WriteLine("Added " + count.ToString() + " of Material " + material.ToString() + " to Inventory");
+    Console.WriteLine("Added " + count + " of Material " + material + " to Inventory");
 
     //Simply update the UI
     playerManager.topDownPlayer.playerInventoryUI.UpdateMaterialVisual(material, stackableItems[material]);
   }
 
-  public void AddUniqueItem(string inventoryObjectName,	Parts.ConstructedWeapon weapon)
+  public void AddUniqueItem(string inventoryObjectName,	ConstructedWeapon weapon)
   {
     //TODO later selecting weapon brings up weapon menu to change stance/combo/special etc 
-    uniqueItems.Add(new Tuple<string,	Parts.ConstructedWeapon>(inventoryObjectName, weapon));
+    uniqueItems.Add(new Tuple<string,	ConstructedWeapon>(inventoryObjectName, weapon));
     Console.WriteLine("Added Unique Item " + inventoryObjectName + " to Inventory");
 
     //Simply update the UI
@@ -41,7 +42,7 @@ public class Inventory
 
 
   //Returns count of material
-  public int GetMaterialCount(Materials.Material material)
+  public int GetMaterialCount(Material material)
   {
     int currVal = 0;
 
@@ -52,7 +53,7 @@ public class Inventory
   }
 
   //Returns whether the inventory has the material
-  public bool HasMaterial(Materials.Material material, int count)
+  public bool HasMaterial(Material material, int count)
   {
     //deal with asking for 0 for some reason
     if(count == 0)
@@ -68,7 +69,7 @@ public class Inventory
   }
 
   //Removes the material from the inventory and assumes the inventory has enough
-  public void RemoveMaterial(Materials.Material material, int count)
+  public void RemoveMaterial(Material material, int count)
   {
     //deal with removing 0 for some reason
     if(count == 0)
@@ -89,10 +90,10 @@ public class Inventory
   {
     playerManager = _playerManager;
     //iterate every material
-    foreach(Materials.Material material in Enum.GetValues(typeof(Materials.Material)))
+    foreach(Material material in Enum.GetValues(typeof(Material)))
     {
       //For now just break when at bronze, only generate Iron -> Cobalt
-      if(material == Materials.Material.Bronze)
+      if(material == Material.Bronze)
       {
         break;
       }

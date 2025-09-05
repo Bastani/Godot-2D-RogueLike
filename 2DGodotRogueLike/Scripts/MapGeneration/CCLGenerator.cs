@@ -1,7 +1,6 @@
-using Godot;
-using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using Godot;
 
 
 //Connected Component Labeling Generator using the Game of Life as the basis for initial level gen
@@ -18,7 +17,7 @@ public class CCLGenerator
   int width;
   int height;
 
-  Godot.TileMap mapIDVisualization = new TileMap();
+  TileMap mapIDVisualization = new TileMap();
 
   //This long line is a dictionary from Id's to a hashset (unique list) of integer x,y coords as a keypair
   Dictionary<KeyValuePair<int, int>, int> dictIDToListOfCoords = new Dictionary<KeyValuePair<int, int>, int>();
@@ -38,7 +37,7 @@ public class CCLGenerator
   //ID to size for the first iteration
   int [] sizeOfPixelGroup = new int [maxNumGroups];
 
-  public void SetVisualizationMap(ref Dictionary<string,Godot.TileMap> _mapIDVisualization, string map)
+  public void SetVisualizationMap(ref Dictionary<string,TileMap> _mapIDVisualization, string map)
   {
     mapIDVisualization = _mapIDVisualization[map];
   }
@@ -74,14 +73,14 @@ public class CCLGenerator
       int IDParent = 0;
       //while we can get parents follow the path
       //Get Root
-      string treeRoot = "Following Tree " + ID.ToString();
+      string treeRoot = "Following Tree " + ID;
       foreach (var IDPair in IDToParent)
       {
         if(IDPair.Key == ID)
         {
           IDParent = IDPair.Value;
           //Console.WriteLine(" ->" + IDout.ToString());
-          treeRoot += " -> " + IDParent.ToString();
+          treeRoot += " -> " + IDParent;
           //follow tree up
           ID = IDParent;
         }
@@ -107,7 +106,7 @@ public class CCLGenerator
       int ID = element.Value;
       int IDout = 0;
 
-      if(mode == CCLGenerator.VisualizeMode.Root)
+      if(mode == VisualizeMode.Root)
       {
         //Get Root
 
@@ -128,7 +127,7 @@ public class CCLGenerator
       }
 
       //here when this set has no parent
-      mapIDVisualization.SetCell(key.Key , key.Value , ID % maxColors);
+      mapIDVisualization.SetCell(0, new Vector2I(key.Key , key.Value) , ID % maxColors);
     }
 
     //update old dict with new one
@@ -235,7 +234,7 @@ public class CCLGenerator
         //Set the smallest parent to the current ID value so we never set 1 to something higher than 1
         int smallestParent = i;
         //Get a list where the Key/Value pair is CurrentID/Parent
-        foreach(KeyValuePair<int,int> currentIDPair in IDToParent.Where((KeyValuePair<int,int> IDPair) => IDPair.Key == i || IDPair.Value == i))
+        foreach(KeyValuePair<int,int> currentIDPair in IDToParent.Where(IDPair => IDPair.Key == i || IDPair.Value == i))
         {
           if(currentIDPair.Value < smallestParent)
           {

@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/In The Depths Of The Cave 120 BPM.wav-9db17b947d7da45b2129716863bcf5b6.sample"
+type="AudioStreamWAV"
+uid="uid://ch4lfmjy25hww"
+path="res://.godot/imported/In The Depths Of The Cave 120 BPM.wav-9db17b947d7da45b2129716863bcf5b6.sample"
 
 [deps]
 
 source_file="res://Assets/Music/8Bit/In The Depths Of The Cave 120 BPM.wav"
-dest_files=[ "res://.import/In The Depths Of The Cave 120 BPM.wav-9db17b947d7da45b2129716863bcf5b6.sample" ]
+dest_files=["res://.godot/imported/In The Depths Of The Cave 120 BPM.wav-9db17b947d7da45b2129716863bcf5b6.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

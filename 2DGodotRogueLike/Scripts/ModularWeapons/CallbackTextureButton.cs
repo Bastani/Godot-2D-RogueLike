@@ -1,9 +1,8 @@
 using Godot;
-using System;
 
 //declaring delegate type
 public delegate void BasicCallback();
-public class CallbackTextureButton : TextureButton
+public partial class CallbackTextureButton : TextureButton
 {
     public string blueprint;
 
@@ -22,16 +21,16 @@ public class CallbackTextureButton : TextureButton
 
     //Do the color stuff here
     [Export]
-    public Color hoveredColor = new Color(0,0,1,1);
+    public Color hoveredColor = new Color(0,0,1);
     [Export]
-    public Color pressedColor = new Color(0,1,0,1);
+    public Color pressedColor = new Color(0,1,0);
     [Export]
-    public Color disabledColor = new Color(1,0,0,1);
+    public Color disabledColor = new Color(1,0,0);
     [Export]
-    public Color defaultColor = new Color();
+    public Color defaultColor;
 
     [Export]
-    public bool changeColors = false;
+    public bool changeColors;
     
     public override void _Ready()
     {

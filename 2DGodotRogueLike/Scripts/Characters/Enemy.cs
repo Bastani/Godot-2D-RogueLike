@@ -1,7 +1,7 @@
-using Godot;
-using System;
 using System.Collections.Generic;
-public class Enemy : CombatCharacter
+using Godot;
+
+public partial class Enemy : CombatCharacter
 {
   public AStar.AStarPather pather = new AStar.AStarPather();
 
@@ -11,7 +11,7 @@ public class Enemy : CombatCharacter
 
 
   public float minMovementDistance = 2.0f;
-  AnimatedSprite sprite;
+  AnimatedSprite2D sprite;
 
   CollisionShape2D movementCollider;
   CollisionShape2D touchCollider;
@@ -41,7 +41,7 @@ public class Enemy : CombatCharacter
   {
     base._Ready();
     characterType = CharacterType.Enemy;
-    sprite = GetNode("AnimatedSprite") as AnimatedSprite;
+    sprite = GetNode("AnimatedSprite") as AnimatedSprite2D;
     movementCollider = GetNode("MovementCollider") as CollisionShape2D;
     attackCollider = GetNode("AttackArea/AttackAreaCollider") as CollisionPolygon2D;
     touchCollider = GetNode("TouchArea/TouchAreaCollider") as CollisionShape2D;
@@ -53,7 +53,7 @@ public class Enemy : CombatCharacter
     playerManager = GetNode<PlayerManager>("/root/PlayerManagerSingletonNode");
     testLevelGeneration = GetNode<TestLevelGeneration>("/root/TestLevelGenNode");
 
-    sprite.Playing = true;
+    sprite.Play();
     globalMovementPosGoal = GlobalPosition;
     movementSpeed *= 10f;
   }
@@ -95,7 +95,7 @@ public class Enemy : CombatCharacter
   
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);    
     healthBar.SetHealth(currentHealth);
@@ -110,17 +110,14 @@ public class Enemy : CombatCharacter
       }
     }
 
-    currentStunDuration -= delta;
+    currentStunDuration -= (float)delta;
 
     if(currentStunDuration >= 0)
     {
       //Stunned
     }
-    else
-    {
-      //notStunned
-    }
 
+    //notStunned
     float distanceToPlayerSquared = float.MaxValue;
     if(playerManager.topDownPlayer != null)
       distanceToPlayerSquared = playerManager.topDownPlayer.GlobalPosition.DistanceSquaredTo(GlobalPosition);
@@ -130,7 +127,7 @@ public class Enemy : CombatCharacter
     {
       Vector2 directionToPlayer = playerManager.topDownPlayer.GlobalPosition - GlobalPosition;
       //Cast to the direction vector B-A = AB
-      rayCast.CastTo = directionToPlayer;
+      rayCast.TargetPosition = directionToPlayer;
       
       if(rayCast.IsColliding())
       {
@@ -149,7 +146,9 @@ public class Enemy : CombatCharacter
         //Only do it when we have followed the path already
         else if (tileMap != null && movementPath.Count == 0 && GlobalPosition != globalMovementPosGoal)
         {
-          pather.InitPather(testLevelGeneration.ForegroundMap.WorldToMap(GlobalPosition), testLevelGeneration.ForegroundMap.WorldToMap(globalMovementPosGoal),
+          pather.InitPather(
+            new Vector2(testLevelGeneration.ForegroundMap.LocalToMap(GlobalPosition).X, testLevelGeneration.ForegroundMap.LocalToMap(GlobalPosition).Y),
+            new Vector2(testLevelGeneration.ForegroundMap.LocalToMap(globalMovementPosGoal).X, testLevelGeneration.ForegroundMap.LocalToMap(globalMovementPosGoal).Y),
             new AStar.AStarMap(testLevelGeneration.terrainMap, testLevelGeneration.width, testLevelGeneration.height));
 
           if(pather.GeneratePath() == AStar.PathState.Found)
@@ -159,7 +158,7 @@ public class Enemy : CombatCharacter
             //Translate to world position
             foreach (var item in pather.path)
             {
-              worldPosPath.Add(testLevelGeneration.ForegroundMap.MapToWorld(item));
+              worldPosPath.Add(testLevelGeneration.ForegroundMap.MapToLocal(new Vector2I((int)item.X, (int)item.Y)));
             }
             movementPath = worldPosPath;
             globalMovementPosGoal = movementPath[0];
@@ -184,7 +183,7 @@ public class Enemy : CombatCharacter
         //Move towards the goal position
         //GlobalPosition = GlobalPosition + deltaMoveToGoal * movementSpeed * delta;
         if(currentStunDuration <= 0)
-          velocity += deltaMoveToGoal * movementSpeed * delta;
+          velocity += deltaMoveToGoal * (movementSpeed * (float)delta);
       }
       //If we still have path to go 
       else if (movementPath.Count > 1)
@@ -194,7 +193,8 @@ public class Enemy : CombatCharacter
         movementPath.Remove(movementPath[0]);
       }
     }
-    
-    velocity = MoveAndSlide(velocity) * 0.6f;
+
+    Velocity = velocity * 0.6f;
+    MoveAndSlide();
   }
 }

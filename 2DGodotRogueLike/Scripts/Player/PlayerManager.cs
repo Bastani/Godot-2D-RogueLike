@@ -1,11 +1,11 @@
-using Godot;
 using System;
+using Godot;
 
 //Goal of this class is a single ref point for the player and player related stuff that is level agnostic
 
 //Get the Player Manager
 //playerManager = GetNode<PlayerManager>("/root/PlayerManagerSingletonNode");
-public class PlayerManager : Node
+public partial class PlayerManager : Node
 {  
 
   private PackedScene playerObjectScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player/TopDownPlayerScene.tscn");
@@ -21,7 +21,7 @@ public class PlayerManager : Node
   public Camera2D playerCamera;
 
   bool createPlayerAndCamera = true;
-  bool selectedLevelToChangeTo = false;
+  bool selectedLevelToChangeTo;
 
   // Called when the node enters the scene tree for the first time.
   public override void _Ready()
@@ -30,14 +30,14 @@ public class PlayerManager : Node
     playerTownInventory = new Inventory(this);
 
     //check for player camera and player
-    if(GetTree().CurrentScene.FindNode("Player") != null)
+    if(GetTree().CurrentScene.GetNode("Player") != null)
     {
-      topDownPlayer = GetTree().CurrentScene.FindNode("Player") as PlayerTopDown;
+      topDownPlayer = GetTree().CurrentScene.GetNode("Player") as PlayerTopDown;
     }
 
-    if(GetTree().CurrentScene.FindNode("PlayerCamera") != null)
+    if(GetTree().CurrentScene.GetNode("PlayerCamera") != null)
     {
-      playerCamera = GetTree().CurrentScene.FindNode("PlayerCamera") as Camera2D;
+      playerCamera = GetTree().CurrentScene.GetNode("PlayerCamera") as Camera2D;
     }
   }
 
@@ -58,7 +58,7 @@ public class PlayerManager : Node
   
     topDownPlayer = null;
     playerCamera = null;
-    GetTree().ChangeSceneTo(newScene);
+    GetTree().ChangeSceneToPacked(newScene);
     createPlayerAndCamera = true;
     nodeToSpawnPlayerAt = _nodeToSpawnPlayerAt;
     selectedLevelToChangeTo = true;
@@ -79,18 +79,18 @@ public class PlayerManager : Node
 
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _Process(float delta)
+  public override void _Process(double delta)
   {
     if(createPlayerAndCamera && selectedLevelToChangeTo)
     {
       selectedLevelToChangeTo = false;
 
       //Add player camera to the scene
-      playerCamera = playerCameraAndUI.Instance<Camera2D>();
+      playerCamera = playerCameraAndUI.Instantiate<Camera2D>();
       GetTree().Root.AddChild(playerCamera);
 
       //Add player to the scene
-      topDownPlayer = playerObjectScene.Instance<PlayerTopDown>();
+      topDownPlayer = playerObjectScene.Instantiate<PlayerTopDown>();
       GetTree().Root.AddChild(topDownPlayer);
       //Load player data as this is only when changing levels
       createPlayerAndCamera = false;

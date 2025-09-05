@@ -1,26 +1,27 @@
-using Godot;
 using System;
-using Godot.Collections;
 using System.Collections.Generic;
+using Godot;
+using Godot.Collections;
+using Parts;
 
-public class BaseBlueprint : Resource
+public partial class BaseBlueprint : Resource
 {
     [Export]
     public string name { get; set; } = "BaseBlueprint";
 
-    public Texture texture { get; set; }
+    public Texture2D texture { get; set; }
     //A blueprint is made up of a list of required pieces
     [Export(PropertyHint.Enum)]
-    public Array<Parts.PartType> requiredPieces = new Array<Parts.PartType>{};
+    public Array<PartType> requiredPieces = new Array<PartType>();
 
     //Returns bool on if its craftable and if not returns a list of piece types that are needed
-    public Tuple<bool,Array<Parts.PartType>> IsCraftableWithGivenMaterials(Array<Parts.PartBlueprint> existingPieces)
+    public Tuple<bool,Array<PartType>> IsCraftableWithGivenMaterials(Array<PartBlueprint> existingPieces)
     {
         //create copies
         List<long> usedPieces = new List<long>();
 
         //List of missing pieces
-        Array<Parts.PartType> missingPieces = new Array<Parts.PartType>();
+        Array<PartType> missingPieces = new Array<PartType>();
         
         //For every piece
         foreach (var requiredPiece in requiredPieces)
@@ -40,13 +41,13 @@ public class BaseBlueprint : Resource
             }
 
             //If we get to the end of the materials and we have not found a material then add a missing material to the list
-            if(foundPiece == false)
+            if(!foundPiece)
             {
                 missingPieces.Add(requiredPiece);
             }
         }
         
         //Return both the bool on if craftable and the list of pieces that are needed
-        return new Tuple<bool,Array<Parts.PartType>>(missingPieces.Count == 0, missingPieces);
+        return new Tuple<bool,Array<PartType>>(missingPieces.Count == 0, missingPieces);
     }
 }

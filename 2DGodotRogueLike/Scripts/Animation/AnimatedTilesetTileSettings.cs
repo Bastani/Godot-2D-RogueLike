@@ -1,13 +1,13 @@
 using Godot;
 
-public class TileSettings : Node
+public partial class TileSettings : Node
 {
   //Starting state of the region
   public Rect2 origionalRegion;
 
   //Specific tile inside of the tileset
   [Export]
-  public int tile = 0;
+  public int tile;
   
   //Max frames of animation
   [Export]

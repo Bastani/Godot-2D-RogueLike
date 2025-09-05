@@ -1,7 +1,6 @@
-using Godot;
 using System;
 
-public class Forge : Interactable
+public partial class Forge : Interactable
 {
   // Declare member variables here. Examples:
   // private int a = 2;
@@ -40,7 +39,7 @@ public class Forge : Interactable
 	}
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);
   }

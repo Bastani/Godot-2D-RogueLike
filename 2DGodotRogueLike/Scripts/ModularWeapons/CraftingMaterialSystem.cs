@@ -1,30 +1,34 @@
-using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Godot;
+using Godot.Collections;
+using Materials;
+using Parts;
+using Array = Godot.Collections.Array;
+using Material = Materials.Material;
 
-public class CraftingMaterialSystem : Control
+public partial class CraftingMaterialSystem : Control
 {
   //Signals
 
   public void SwitchToIronOnButtonPressed()
   {
-    ingot.Modulate = Materials.MaterialTints.tints[Materials.Material.Iron];
+    ingot.Modulate = MaterialTints.tints[Materials.Material.Iron];
   }
 
   public void SwitchToCopperOnButtonPressed()
   {
-    ingot.Modulate = Materials.MaterialTints.tints[Materials.Material.Copper];
+    ingot.Modulate = MaterialTints.tints[Materials.Material.Copper];
   }
-  
+
   public void SwitchToTinOnButtonPressed()
   {
-    ingot.Modulate = Materials.MaterialTints.tints[Materials.Material.Tin];
+    ingot.Modulate = MaterialTints.tints[Materials.Material.Tin];
   }
 
   public void SwitchToAdamantiteOnButtonPressed()
   {
-    ingot.Modulate = Materials.MaterialTints.tints[Materials.Material.Adamantite];
+    ingot.Modulate = MaterialTints.tints[Materials.Material.Adamantite];
   }
 
 
@@ -44,39 +48,39 @@ public class CraftingMaterialSystem : Control
   //Dict of material tints to lookup of pieces
 
   //Dict of type to list of pieces
-  Dictionary<Parts.PartType, Godot.Collections.Array<Parts.PartBlueprint>> allPartsDict = new Dictionary<Parts.PartType,Godot.Collections. Array<Parts.PartBlueprint>>();
+  System.Collections.Generic.Dictionary<PartType, Array<PartBlueprint>> allPartsDict = new System.Collections.Generic.Dictionary<PartType, Array<PartBlueprint>>();
 
   [Obsolete]
-  System.Collections.Generic.List<Parts.PartBlueprint> currentParts = new System.Collections.Generic.List<Parts.PartBlueprint>();
+  List<PartBlueprint> currentParts = new List<PartBlueprint>();
 
-  Parts.WeaponBlueprintNode weaponRootNode = new Parts.WeaponBlueprintNode();
+  WeaponBlueprintNode weaponRootNode = new WeaponBlueprintNode();
 
-  System.Collections.Generic.List<Parts.AttachPoint> attachPoints = new System.Collections.Generic.List<Parts.AttachPoint>();
+  List<AttachPoint> attachPoints = new List<AttachPoint>();
 
   CallbackTextureButton ingot;
 
   BaseBlueprint selectedBlueprint;
-  Parts.AttachPoint selectedAttachPoint;
-  
+  AttachPoint selectedAttachPoint;
+
   public CallbackTextureButton selectedPart;
-  public Parts.WeaponBlueprintNode selectedWeaponBPNode;
-  public Materials.Material selectedInventoryMaterial = Materials.Material.Undefined;
+  public WeaponBlueprintNode selectedWeaponBPNode;
+  public Material selectedInventoryMaterial = Materials.Material.Undefined;
 
-  Dictionary<string,BaseBlueprint> blueprints = new Dictionary<string,BaseBlueprint>();
+  System.Collections.Generic.Dictionary<string,BaseBlueprint> blueprints = new System.Collections.Generic.Dictionary<string,BaseBlueprint>();
 
-  //Load packed scenes 
+  //Load packed scenes
   PackedScene CallbackTextureButtonScene = (PackedScene)ResourceLoader.Load("res://Scenes/BlueprintSystem/CallbackTextureButtonScene.tscn");
   PackedScene CallbackTextureButtonWithTextScene = (PackedScene)ResourceLoader.Load("res://Scenes/BlueprintSystem/CallbackTextureButtonWithTextScene.tscn");
 
   RichTextLabel currentBlueprintText;
 
-  public Dictionary<Materials.Material, HBoxContainer> stackableItemsUI = new Dictionary<Materials.Material, HBoxContainer>();
+  public System.Collections.Generic.Dictionary<Material, HBoxContainer> stackableItemsUI = new System.Collections.Generic.Dictionary<Material, HBoxContainer>();
   public GridContainer inventoryOres;
 
   string fontBBcodePrefix = "[center][b]";
 
-  Texture attachPointTex;
-  BitMap attachPointBitmask;
+  Texture2D attachPointTex;
+  Bitmap attachPointBitmask;
   const string attachPointAssetStr = "res://Assets/Art/My_Art/AttachPoint.png";
 
   Node partVisualizerContainer;
@@ -99,22 +103,22 @@ public class CraftingMaterialSystem : Control
 
   public CraftingSystemMode currentMode = CraftingSystemMode.PartSelection;
 
-  bool playerCanCraftWeapon = false;
+  bool playerCanCraftWeapon;
 
   //Todo replace this with something significantly better..
   //It will help to change the type from TextureButton to derived class like the other BP thing with callbacks
-  int partNum = 0;
+  int partNum;
 
   //Paths
   const string FullBPDir = "res://Data/Blueprints/";
   const string FullSpriteDir = "res://Assets/Art/My_Art/BlueprintIcons/";
-  
+
   Vector2 maxWeaponUIExtents = Vector2.Zero;
   Vector2 minWeaponUIExtents = Vector2.Inf;
 
-  Dictionary<Materials.Material, int> costOfWeapon = null;
+  System.Collections.Generic.Dictionary<Material, int> costOfWeapon;
 
-  Parts.PartStats summationStats;
+  PartStats summationStats;
 
   protected PlayerManager playerManager;
 
@@ -150,29 +154,28 @@ public class CraftingMaterialSystem : Control
   void LoadAllParts()
   {
     //Generate texture and bitmask for the attachment nodes
-    attachPointTex = (Texture)GD.Load(attachPointAssetStr);
-    attachPointBitmask = new BitMap();
-    attachPointBitmask.CreateFromImageAlpha(attachPointTex.GetData());
-    
+    attachPointTex = (Texture2D)GD.Load(attachPointAssetStr);
+    attachPointBitmask = new Bitmap();
+    attachPointBitmask.CreateFromImageAlpha(attachPointTex.GetImage());
+
     //https://www.c-sharpcorner.com/article/loop-through-enum-values-in-c-sharp/
     //For each Piece type generate an array in the pieces dict
-    foreach (Parts.PartType type in Enum.GetValues(typeof(Parts.PartType)))
-    { 
-      if(type == Parts.PartType.Undefined)
+    foreach (PartType type in Enum.GetValues(typeof(PartType)))
+    {
+      if(type == PartType.Undefined)
         continue;
-      allPartsDict[type] = new Godot.Collections.Array<Parts.PartBlueprint>();
+      allPartsDict[type] = new Array<PartBlueprint>();
     }
 
-    Godot.Collections.Array<Parts.PartBlueprint> createdParts = new Godot.Collections.Array<Parts.PartBlueprint>();
+    Array<PartBlueprint> createdParts = new Array<PartBlueprint>();
 
     //Read json file into text
-    Godot.File file = new Godot.File();
-    file.Open("res://Data/PartsList.json", Godot.File.ModeFlags.Read);
+    FileAccess file = FileAccess.Open("res://Data/PartsList.json", FileAccess.ModeFlags.Read);
     string jsonText = file.GetAsText();
     file.Close();
 
     //Construct dict of stuff
-    Godot.Collections.Array ParsedData = Godot.JSON.Parse(jsonText).Result as Godot.Collections.Array;
+    Array ParsedData = Json.ParseString(jsonText).Obj as Array;
 
 
     //slashDamage": -40,
@@ -180,53 +183,53 @@ public class CraftingMaterialSystem : Control
     //"attackWindUp": 10,
     //"attackWindDown": 10,
     //"length": 0,
-    
+
     //Parse data based on Resource
-    foreach (Godot.Collections.Dictionary data in ParsedData)
+    foreach (Dictionary data in ParsedData)
     {
-      Parts.PartBlueprint partBP = new Parts.PartBlueprint();
-      partBP.name = data["partName"] as string;
-      partBP.texture = (Texture)GD.Load(data["partTextureDir"] as string);
-      
+      PartBlueprint partBP = new PartBlueprint();
+      partBP.name = (string)data["partName"];
+      partBP.texture = (Texture2D)GD.Load((string)data["partTextureDir"]);
+
       if(partBP.texture == null)
       {
-        throw new Exception("Missing Texture :\"" + data["partTextureDir"] as string +"\"");
+        throw new Exception("Missing Texture :\"" + data["partTextureDir"] +"\"");
       }
 
-      partBP.partType = Parts.PartTypeConversion.FromString(data["partType"] as string);
-      
+      partBP.partType = PartTypeConversion.FromString((string)data["partType"]);
+
       //Don't ask
       partBP.materialCost = (int)(float)data["partCost"];
       //Ok, it's because json uses floats only so object -> float -> int
 
 
-      Godot.Collections.Dictionary basicAttachPt = data["baseAttachPoint"] as Godot.Collections.Dictionary;
+      Dictionary basicAttachPt = (Dictionary)data["baseAttachPoint"];
       partBP.baseAttachPoint = new Vector2((int)(float)basicAttachPt["x"],(int)(float)basicAttachPt["y"]);
 
-      Godot.Collections.Dictionary partAttributes = data["partAttributes"] as Godot.Collections.Dictionary;
+      Dictionary partAttributes = (Dictionary)data["partAttributes"];
       partBP.stats.slashDamage =      (float)partAttributes["slashDamage"];
       partBP.stats.stabDamage =       (float)partAttributes["stabDamage"];
       partBP.stats.attackWindUp =     (float)partAttributes["attackWindUp"];
       partBP.stats.attackWindDown =   (float)partAttributes["attackWindDown"];
       partBP.stats.length =           (float)partAttributes["length"];
-      partBP.stats.specialStat =      partAttributes["specialStat"] as string;
+      partBP.stats.specialStat =      (string)partAttributes["specialStat"];
 
-      foreach (Godot.Collections.Dictionary partAttachPoints in data["partAttachPoints"] as Godot.Collections.Array)
+      foreach (Dictionary partAttachPoints in (Array)data["partAttachPoints"])
       {
-        Godot.Collections.Array<Parts.PartType> types = new Godot.Collections.Array<Parts.PartType>();
+        Array<PartType> types = new Array<PartType>();
         int x = (int)(float)partAttachPoints["x"];
         int y = (int)(float)partAttachPoints["y"];
-        foreach (var item in partAttachPoints["types"] as Godot.Collections.Array)
+        foreach (var item in (Array)partAttachPoints["types"])
         {
-          types.Add(Parts.PartTypeConversion.FromString(item as string));
+          types.Add(PartTypeConversion.FromString((string)item));
         }
-        partBP.partAttachPoints.Add(new Parts.AttachPoint(new Vector2(x,y),types));
+        partBP.partAttachPoints.Add(new AttachPoint(new Vector2(x,y),types));
       }
 
       //Generate bitmap from texture data
-      BitMap newBMP = new BitMap();
+      Bitmap newBMP = new Bitmap();
 
-      newBMP.CreateFromImageAlpha(partBP.texture.GetData());
+      newBMP.CreateFromImageAlpha(partBP.texture.GetImage());
       partBP.bitMask = newBMP;
 
       if(partBP.name == "TBD")
@@ -241,106 +244,103 @@ public class CraftingMaterialSystem : Control
   {
 
     //Read json file into text
-    Godot.File file = new Godot.File();
-    file.Open("res://Data/Blueprints.json", Godot.File.ModeFlags.Read);
+    var file = FileAccess.Open("res://Data/Blueprints.json", FileAccess.ModeFlags.Read);
     string jsonText = file.GetAsText();
     file.Close();
 
     //Construct dict of stuff
-    Godot.Collections.Array ParsedData = Godot.JSON.Parse(jsonText).Result as Godot.Collections.Array;
+    Array ParsedData = Json.ParseString(jsonText).Obj as Array;
 
     //Parse data based on Resource
-    foreach (Godot.Collections.Dictionary data in ParsedData)
+    foreach (Dictionary data in ParsedData)
     {
       BaseBlueprint partBP = new BaseBlueprint();
-      partBP.name = data["blueprintName"] as string;
-      partBP.texture = (Texture)GD.Load(data["blueprintIconSprite"] as string);
-      
-      foreach (Godot.Collections.Dictionary subData in data["blueprintRequiredPieces"] as Godot.Collections.Array)
+      partBP.name = (string)data["blueprintName"];
+      partBP.texture = (Texture2D)GD.Load((string)data["blueprintIconSprite"]);
+
+      foreach (Dictionary subData in (Array)data["blueprintRequiredPieces"])
       {
-        partBP.requiredPieces.Add(Parts.PartTypeConversion.FromString(subData["partType"] as string));
+        partBP.requiredPieces.Add(PartTypeConversion.FromString((string)subData["partType"]));
       }
       blueprints.Add(partBP.name, partBP);
     }
   }
 
   //Generate a callback button from a weapon blueprint piece
-  CallbackTextureButton CreateCallbackButtonFromBlueprint(Parts.PartBlueprint blueprint, BasicCallback callback, Vector2 size, bool useBitmask = false, bool useColors = true, bool setMinSize = false)
+  CallbackTextureButton CreateCallbackButtonFromBlueprint(PartBlueprint blueprint, BasicCallback callback, Vector2 size, bool useBitmask = false, bool useColors = true, bool setMinSize = false)
   {
     //Generate individual part buttons
-    CallbackTextureButton BPPieceButton = CallbackTextureButtonScene.Instance() as CallbackTextureButton;
+    CallbackTextureButton BPPieceButton = CallbackTextureButtonScene.Instantiate() as CallbackTextureButton;
     //Generate a unique name for the part
     BPPieceButton.Name = blueprint.name + partNum++;
-    
+
     //Set the size of the rect and need this stuff to get it to expand
-    BPPieceButton.RectSize = blueprint.texture.GetSize();  //size of tex
-    BPPieceButton.RectScale = size;   //new scale
-    BPPieceButton.Expand = true;
+    BPPieceButton.Size = blueprint.texture.GetSize();  //size of tex
+    BPPieceButton.Scale = size;   //new scale
     //BPPieceButton.StretchMode = TextureButton.StretchModeEnum.KeepAspectCentered;
     //
     if(setMinSize)
-      BPPieceButton.RectMinSize = BPPieceButton.RectSize * BPPieceButton.RectScale;
+      BPPieceButton.CustomMinimumSize = BPPieceButton.CustomMinimumSize * BPPieceButton.CustomMinimumSize;
     else
-      BPPieceButton.RectMinSize = BPPieceButton.RectSize;
-    
-    //BPPieceButton.RectPosition -= BPPieceButton.RectSize * BPPieceButton.RectScale / 2.0f;
+      BPPieceButton.CustomMinimumSize = BPPieceButton.CustomMinimumSize;
+
+    //BPPieceButton.Position -= BPPieceButton.Size * BPPieceButton.Scale / 2.0f;
 
     //Set textures and bitmasks to the default part's texture and its bitmask
     BPPieceButton.TextureNormal = blueprint.texture;
-    
+
     BPPieceButton.onButtonPressedCallback = callback;
     BPPieceButton.changeColors = useColors;
     BPPieceButton.Modulate = BPPieceButton.defaultColor;
-  
+
     if(useBitmask)
       BPPieceButton.TextureClickMask = blueprint.bitMask;
-    
+
     return BPPieceButton;
   }
 
-  //Create the callback button from an attachment point on the weapon creation node 
-  CallbackTextureButton CreateCallbackButtonFromAttachmentPoint(Parts.AttachPoint attachPoint, Parts.WeaponBlueprintNode node, BasicCallback callback, Vector2 partRectSize, bool useColors = true, bool setMinSize = false)
+  //Create the callback button from an attachment point on the weapon creation node
+  CallbackTextureButton CreateCallbackButtonFromAttachmentPoint(AttachPoint attachPoint, WeaponBlueprintNode node, BasicCallback callback, Vector2 partRectSize, bool useColors = true, bool setMinSize = false)
   {
     //Generate individual part buttons
-    CallbackTextureButton newAttachpoint = CallbackTextureButtonScene.Instance() as CallbackTextureButton;
+    CallbackTextureButton newAttachpoint = CallbackTextureButtonScene.Instantiate() as CallbackTextureButton;
     //Generate a unique name for the part
-    
+
     //Set the size of the rect and need this stuff to get it to expand
-    newAttachpoint.RectSize = attachPointTex.GetSize();  //size of tex
-    newAttachpoint.RectScale = partVisualizerScale;   //new scale
-    newAttachpoint.Expand = true;
+    newAttachpoint.Size = attachPointTex.GetSize();  //size of tex
+    newAttachpoint.Scale = partVisualizerScale;   //new scale
     //newAttachpoint.StretchMode = TextureButton.StretchModeEnum.KeepAspect;
 
     if(setMinSize)
-      newAttachpoint.RectMinSize = newAttachpoint.RectSize * newAttachpoint.RectScale;
+      newAttachpoint.CustomMinimumSize = newAttachpoint.Size * newAttachpoint.Scale;
     else
-      newAttachpoint.RectMinSize = newAttachpoint.RectSize;
+      newAttachpoint.CustomMinimumSize = newAttachpoint.Size;
 
     //Set textures and bitmasks to the default part's texture and its bitmask
     newAttachpoint.TextureNormal = attachPointTex;
-    
-    newAttachpoint.RectPosition = (node.currentOffset + attachPoint.pos - (attachPointTex.GetSize() / 2.0f)) * partVisualizerScale;
 
-    //TODO need to fix the usage of currentOffset for the 
+    newAttachpoint.Position = (node.currentOffset + attachPoint.pos - (attachPointTex.GetSize() / 2.0f)) * partVisualizerScale;
+
+    //TODO need to fix the usage of currentOffset for the
     //if odd then move a bit
-    //if(newAttachpoint.RectSize.x % 2 == 1 && (maxWeaponUIExtents.x-minWeaponUIExtents.x) % 2 == 0)
+    //if(newAttachpoint.Size.x % 2 == 1 && (maxWeaponUIExtents.x-minWeaponUIExtents.x) % 2 == 0)
     //{
-    //  newAttachpoint.RectPosition += new Vector2(0.5f * partVisualizerScale.x,0);
+    //  newAttachpoint.Position += new Vector2(0.5f * partVisualizerScale.X,0);
     //}
-    //if(newAttachpoint.RectSize.y % 2 == 1 && (maxWeaponUIExtents.y-minWeaponUIExtents.y) % 2 == 0)
+    //if(newAttachpoint.Size.y % 2 == 1 && (maxWeaponUIExtents.y-minWeaponUIExtents.y) % 2 == 0)
     //{
-    //  newAttachpoint.RectPosition += new Vector2(0,0.5f * partVisualizerScale.y);
+    //  newAttachpoint.Position += new Vector2(0,0.5f * partVisualizerScale.y);
     //}
 
     //This fixed everything???
-    newAttachpoint.RectPosition += new Vector2(0.5f * partVisualizerScale.x,0.5f * partVisualizerScale.y);
+    newAttachpoint.Position += new Vector2(0.5f * partVisualizerScale.X,0.5f * partVisualizerScale.Y);
 
-    
+
     newAttachpoint.onButtonPressedCallback = callback;
     newAttachpoint.changeColors = useColors;
-    newAttachpoint.Modulate = new Color(0,0.8f,0,1);
+    newAttachpoint.Modulate = new Color(0,0.8f,0);
     newAttachpoint.TextureClickMask = attachPointBitmask;
-    
+
     return newAttachpoint;
   }
 
@@ -381,9 +381,9 @@ public class CraftingMaterialSystem : Control
   }
 
   //Generate a new blueprint so the array can be moved into a FinishedBP list
-  Parts.PartBlueprint CreatePartBlueprintFromType(Parts.PartType partType)
-  {   
-    return new Parts.PartBlueprint(allPartsDict[partType][0]);
+  PartBlueprint CreatePartBlueprintFromType(PartType partType)
+  {
+    return new PartBlueprint(allPartsDict[partType][0]);
   }
 
   //Generate a blueprint button from
@@ -392,7 +392,7 @@ public class CraftingMaterialSystem : Control
   {
 
     //Configure Button
-    CallbackTextureButton newCallbackTextureButton = CallbackTextureButtonScene.Instance() as CallbackTextureButton;
+    CallbackTextureButton newCallbackTextureButton = CallbackTextureButtonScene.Instantiate() as CallbackTextureButton;
     newCallbackTextureButton.StretchMode = TextureButton.StretchModeEnum.KeepAspectCentered;
     newCallbackTextureButton.TextureNormal = loadedBP.texture;
     newCallbackTextureButton.blueprint = loadedBP.name;
@@ -406,8 +406,8 @@ public class CraftingMaterialSystem : Control
       if(selectedBlueprint == blueprints[newCallbackTextureButton.blueprint])
         return;
       //Update selected blueprint and the selected BP stuff
-      selectedBlueprint = blueprints[newCallbackTextureButton.blueprint]; 
-      currentBlueprintText.BbcodeText = fontBBcodePrefix + selectedBlueprint.name;
+      selectedBlueprint = blueprints[newCallbackTextureButton.blueprint];
+      currentBlueprintText.Text = fontBBcodePrefix + selectedBlueprint.name;
 
       //Clear current parts
       currentParts.Clear();
@@ -416,8 +416,8 @@ public class CraftingMaterialSystem : Control
       {
         currentParts.Add(allPartsDict[part][0]);//CreatePartBlueprintFromType(part));
       }
-      currentParts.Sort(Parts.PartTypeConversion.CompareParts);
-      
+      currentParts.Sort(PartTypeConversion.CompareParts);
+
       //Clear part selection as well
       ClearPartSelection();
       GeneratePartVisualizerUIFromCurrentParts();
@@ -426,7 +426,7 @@ public class CraftingMaterialSystem : Control
     //Load the icons
     blueprintContainer.AddChild(newCallbackTextureButton);
   }
-  
+
   public void UpdateCurrentlySelectedPart(CallbackTextureButton newSelectedPart)
   {
     if(newSelectedPart != null)
@@ -442,7 +442,7 @@ public class CraftingMaterialSystem : Control
     selectedPart = newSelectedPart;
   }
 
-  void UpdateCurrentlySelectedAttachPoint(Parts.AttachPoint attachPoint, CallbackTextureButton newAttachPointButton)
+  void UpdateCurrentlySelectedAttachPoint(AttachPoint attachPoint, CallbackTextureButton newAttachPointButton)
   {
     if(attachPoint != null && newAttachPointButton != null)
     {
@@ -457,7 +457,7 @@ public class CraftingMaterialSystem : Control
     selectedAttachPoint = attachPoint;
   }
 
-  void SetSelectedAttachPoint(Parts.AttachPoint attachPoint, CallbackTextureButton newAttachPointButton, Parts.WeaponBlueprintNode node)
+  void SetSelectedAttachPoint(AttachPoint attachPoint, CallbackTextureButton newAttachPointButton, WeaponBlueprintNode node)
   {
     //Reset selected part
     UpdateCurrentlySelectedPart(null);
@@ -469,35 +469,32 @@ public class CraftingMaterialSystem : Control
     {
       LoadPartSelectionAttachPoint(attachPoint, node, newAttachPointButton);
     }
-    else
-    {
-      //Material Selection
-    }
+    //Material Selection
   }
 
-  void GenerateAttachPointsUIFromPart(Parts.WeaponBlueprintNode node, Vector2 partRectSize)
+  void GenerateAttachPointsUIFromPart(WeaponBlueprintNode node, Vector2 partRectSize)
   {
     foreach (var attachPoint in node.part.partAttachPoints)
     {
       //Only generate a new button if there is an open attachment slot
-      if(attachPoint.attachedPart == false)
+      if(!attachPoint.attachedPart)
       {
         //Generate green attach point
         CallbackTextureButton newAttachPointButton = default;
-        newAttachPointButton = CreateCallbackButtonFromAttachmentPoint(attachPoint, node,() => {SetSelectedAttachPoint(attachPoint, newAttachPointButton, node);}, partRectSize, true, false);
+        newAttachPointButton = CreateCallbackButtonFromAttachmentPoint(attachPoint, node,() => {SetSelectedAttachPoint(attachPoint, newAttachPointButton, node);}, partRectSize);
 
         partVisualizerContainer.AddChild(newAttachPointButton);
         //Set callback to SetSelectedAttachPoint
       }
     }
   }
-  
-  void GeneratePartsFromWeaponBPNode(Parts.WeaponBlueprintNode node, Vector2 baseOffset)
+
+  void GeneratePartsFromWeaponBPNode(WeaponBlueprintNode node, Vector2 baseOffset)
   {
     //Loads the part visualizer with callbacks to load the part selections
-    //cannot pass BPPieceButton to the functor so need to initialize it to an object. 
+    //cannot pass BPPieceButton to the functor so need to initialize it to an object.
     CallbackTextureButton BPPieceButton = default;
-    BPPieceButton = CreateCallbackButtonFromBlueprint(node.part, () => 
+    BPPieceButton = CreateCallbackButtonFromBlueprint(node.part, () =>
     {
       if(BPPieceButton != selectedPart)
       {
@@ -517,36 +514,36 @@ public class CraftingMaterialSystem : Control
           //Material Selection
         }
       }
-    }, partVisualizerScale, true, true, false);
+    }, partVisualizerScale, true);
 
-    
+
     //places the location - the attach point because attachpoint is -vector to move image so its 0,0 is the attach pt + the base offset
     node.currentOffset = -node.part.baseAttachPoint + baseOffset;
-    BPPieceButton.RectPosition = node.currentOffset * partVisualizerScale;
+    BPPieceButton.Position = node.currentOffset * partVisualizerScale;
 
     //if odd then move a bit
     //Weirdly this works perfectly with the attachment points but makes the problem worse here
-    //if(BPPieceButton.RectSize.x % 2 == 1)
+    //if(BPPieceButton.Size.x % 2 == 1)
     //{
-    //  BPPieceButton.RectPosition += new Vector2(0.5f * partVisualizerScale.x,0);
+    //  BPPieceButton.Position += new Vector2(0.5f * partVisualizerScale.X,0);
     //}
-    //if(BPPieceButton.RectSize.y % 2 == 1)
+    //if(BPPieceButton.Size.y % 2 == 1)
     //{
-    //  BPPieceButton.RectPosition += new Vector2(0,0.5f * partVisualizerScale.y);
+    //  BPPieceButton.Position += new Vector2(0,0.5f * partVisualizerScale.y);
     //}
 
-    Parts.WeaponBlueprintNode parentNode = node.parent;
+    WeaponBlueprintNode parentNode = node.parent;
 
     //If not undefined than don't change the color
     if(currentMode == CraftingSystemMode.PartSelection)
     {
-      BPPieceButton.Modulate = Materials.MaterialTints.tints[node.part.currentMaterial];
+      BPPieceButton.Modulate = MaterialTints.tints[node.part.currentMaterial];
     }
 
     //If not undefined than don't change
     if(currentMode == CraftingSystemMode.MaterialSelection)
     {
-      BPPieceButton.Modulate = Materials.MaterialTints.tints[node.part.currentMaterial];
+      BPPieceButton.Modulate = MaterialTints.tints[node.part.currentMaterial];
     }
 
     partVisualizerContainer.AddChild(BPPieceButton);
@@ -555,7 +552,7 @@ public class CraftingMaterialSystem : Control
     //Don't place attachment points in the material selection
     if(currentMode == CraftingSystemMode.PartSelection)
     {
-      GenerateAttachPointsUIFromPart(node, BPPieceButton.RectSize * BPPieceButton.RectScale / 2.0f);
+      GenerateAttachPointsUIFromPart(node, BPPieceButton.Size * BPPieceButton.Scale / 2.0f);
     }
 
     foreach (var item in node.children)
@@ -566,29 +563,29 @@ public class CraftingMaterialSystem : Control
   }
 
   //recursively get the largest UI extents
-  void GetLargestUIExtents(Parts.WeaponBlueprintNode node)
+  void GetLargestUIExtents(WeaponBlueprintNode node)
   {
     //Set the bounding box of the weapon so we can rescale the UI
-    maxWeaponUIExtents = new Vector2(Mathf.Max(node.currentOffset.x + node.part.texture.GetSize().x, maxWeaponUIExtents.x), Mathf.Max(node.currentOffset.y + node.part.texture.GetSize().y, maxWeaponUIExtents.y));
-    minWeaponUIExtents = new Vector2(Mathf.Min(node.currentOffset.x - node.part.texture.GetSize().x, minWeaponUIExtents.x), Mathf.Min(node.currentOffset.y - node.part.texture.GetSize().y, minWeaponUIExtents.y));
+    maxWeaponUIExtents = new Vector2(Mathf.Max(node.currentOffset.X + node.part.texture.GetSize().X, maxWeaponUIExtents.X), Mathf.Max(node.currentOffset.Y + node.part.texture.GetSize().Y, maxWeaponUIExtents.Y));
+    minWeaponUIExtents = new Vector2(Mathf.Min(node.currentOffset.X - node.part.texture.GetSize().X, minWeaponUIExtents.X), Mathf.Min(node.currentOffset.Y - node.part.texture.GetSize().Y, minWeaponUIExtents.Y));
     foreach (var item in node.children)
     {
       GetLargestUIExtents(item.Value);
-    }   
+    }
   }
 
-  void AccumulateStats(Parts.WeaponBlueprintNode node, ref Parts.PartStats summationStats)
+  void AccumulateStats(WeaponBlueprintNode node, ref PartStats summationStats)
   {
-    summationStats = Parts.PartStats.GetCombinationOfStats(summationStats, node.part.stats, node.part.currentMaterial);
+    summationStats = PartStats.GetCombinationOfStats(summationStats, node.part.stats, node.part.currentMaterial);
     foreach (var item in node.children)
     {
       AccumulateStats(item.Value, ref summationStats);
-    }   
+    }
   }
 
   public void GeneratePartVisualizerUIFromCurrentParts()
   {
-    maxWeaponUIExtents = Vector2.Zero;  
+    maxWeaponUIExtents = Vector2.Zero;
     minWeaponUIExtents = Vector2.Inf;
 
     //We need to update the currentOffset before we get the extents
@@ -598,29 +595,29 @@ public class CraftingMaterialSystem : Control
     ClearPartsVisualizer();
     ClearCurrentBlueprintDetails();
 
-    summationStats = new Parts.PartStats();
+    summationStats = new PartStats();
 
-    Console.WriteLine("Max Weapon UI Extents Part Visualizer Scale is " + maxWeaponUIExtents.ToString());
-    Console.WriteLine("Min Weapon UI Extents Part Visualizer Scale is " + minWeaponUIExtents.ToString());
-    
+    Console.WriteLine("Max Weapon UI Extents Part Visualizer Scale is " + maxWeaponUIExtents);
+    Console.WriteLine("Min Weapon UI Extents Part Visualizer Scale is " + minWeaponUIExtents);
+
     //max - min = dist
     Vector2 weaponUIExtents = maxWeaponUIExtents - minWeaponUIExtents;
-    Console.WriteLine("Weapon UI Extents Part Visualizer Scale is " + weaponUIExtents.ToString());
+    Console.WriteLine("Weapon UI Extents Part Visualizer Scale is " + weaponUIExtents);
 
     //get the larget axis, MaxAxis returns the largest axis not the number of it
-    float weaponUIMaxScale = Mathf.Max(weaponUIExtents.x, weaponUIExtents.y);
+    float weaponUIMaxScale = Mathf.Max(weaponUIExtents.X, weaponUIExtents.Y);
 
-    Console.WriteLine("Weapon UI Extents Scale is " + weaponUIMaxScale.ToString());
+    Console.WriteLine("Weapon UI Extents Scale is " + weaponUIMaxScale);
     //hardcoded expected 32 to be the largest size so divide the max by the current to get the multiplier * the scale at 32 length gives us the new scalar (instead of 4)
-    //And round it so that we don't have any float shenannagins 
+    //And round it so that we don't have any float shenannagins
     float newScale = Mathf.Round((32.0f/weaponUIMaxScale) * basePartVisualizerScale * 100.0f)/100.0f;
 
     partVisualizerScale = new Vector2(newScale,newScale);
 
-    Console.WriteLine("New Part Visualizer Scale is " + partVisualizerScale.x.ToString());
+    Console.WriteLine("New Part Visualizer Scale is " + partVisualizerScale.X.ToString());
     GeneratePartsFromWeaponBPNode(weaponRootNode, -weaponRootNode.part.texture.GetSize() / 2.0f);
     //GeneratePartsFromWeaponBPNode(weaponRootNode, -weaponRootNode.part.texture.GetSize() / 2.0f + (weaponUIExtents / 2.0f) / partVisualizerScale);
-    
+
     AccumulateStats(weaponRootNode, ref summationStats);
 
     RichTextLabel bpDetails = new RichTextLabel();
@@ -629,17 +626,17 @@ public class CraftingMaterialSystem : Control
 
     //Only write text if we have parts
     //if(currentParts.Count >= 1)
-    bpDetails.BbcodeText = summationStats.GenerateStatText(null, 0, false);
+    bpDetails.Text = summationStats.GenerateStatText(null, 0, false);
 
-    bpDetails.RectMinSize = new Vector2(32,50);
-    bpDetails.RectClipContent = false;
+    bpDetails.CustomMinimumSize = new Vector2(32,50);
+    bpDetails.ClipContents = false;
   }
 
   public override void _Draw()
   {
 
-    Vector2 center = (partVisualizerContainer as Control).RectGlobalPosition;// + (partVisualizerContainer as Control).RectSize * 0.5f;
-    //Vector2 center = (partVisualizerContainer as Control).RectGlobalPosition + (partVisualizerContainer as Control).RectSize * 0.5f;
+    Vector2 center = ((Control)partVisualizerContainer).GlobalPosition;// + (partVisualizerContainer as Control).Size * 0.5f;
+    //Vector2 center = (partVisualizerContainer as Control).GlobalPosition + (partVisualizerContainer as Control).Size * 0.5f;
 
     //Debug lines
     //DrawLine(center + minWeaponUIExtents, center + minWeaponUIExtents + new Vector2(0,100),new Color("fc0303"),2);   //Pos Y
@@ -647,24 +644,24 @@ public class CraftingMaterialSystem : Control
     //DrawLine(center + minWeaponUIExtents, center + minWeaponUIExtents + new Vector2(100,0),new Color("0345fc"),2);   //Pos X
     //DrawLine(center + maxWeaponUIExtents, center + maxWeaponUIExtents + new Vector2(-100,0),new Color("fc03ce"),2);  //Neg X
   }
-  
+
 
   public override void _Ready()
   {
     //TODO: Hardcode path so no search
-    partVisualizerContainer = FindNode("PartsVisualizerContainer");
-    currentBlueprintDetailContainer = FindNode("PartDetailContainer");
-    blueprintContainer = FindNode("GridBlueprints") as HBoxContainer;
-    newPartSelectionContainer = FindNode("NewPartSelectionContainer");
-    currentBlueprintText = FindNode("CurrentBPTitle") as RichTextLabel;
-    inventoryOres = FindNode("OreInventoryGridContainer") as GridContainer;
+    partVisualizerContainer = GetNode("PartsVisualizerContainer");
+    currentBlueprintDetailContainer = GetNode("PartDetailContainer");
+    blueprintContainer = GetNode("GridBlueprints") as HBoxContainer;
+    newPartSelectionContainer = GetNode("NewPartSelectionContainer");
+    currentBlueprintText = GetNode("CurrentBPTitle") as RichTextLabel;
+    inventoryOres = GetNode("OreInventoryGridContainer") as GridContainer;
 
     playerManager = GetNode<PlayerManager>("/root/PlayerManagerSingletonNode");
 
     LoadAllParts();
     //Start the current part as a empty handle
     //currentParts.Add(allPartsDict[Parts.PartType.Handle][0]);
-    weaponRootNode.part = allPartsDict[Parts.PartType.Handle][0];
+    weaponRootNode.part = allPartsDict[PartType.Handle][0];
 
     Color ironBaseColor = new Color("e8e8e8");
     //Materials.MaterialTints.tints = data from file
@@ -672,19 +669,15 @@ public class CraftingMaterialSystem : Control
     //genuinely using hex str to int
 
     //For each BP in BP folder, load them
-    Directory blueprintDir = new Directory();
-    //Set dir to BP folder
 
-    Directory spriteDir = new Directory();
-    
     //Load sprites for bp's
-    if(spriteDir.Open(FullSpriteDir) != Error.Ok)
+    if(DirAccess.Open(FullSpriteDir) == null)
     {
       throw(new Exception("Broke loading BP sprite Icons"));
     }
-    
+
     //Blueprints are deprecated
-    //Load blueprint resources 
+    //Load blueprint resources
     //foreach (var blueprint in blueprints)
     //{
     //  GenerateBlueprintButton(blueprint.Value);
@@ -693,18 +686,18 @@ public class CraftingMaterialSystem : Control
     //Set initial state to MaterialSelection
     SetModePartSelection();
   }
-  
-  
-  public override void _Process(float delta)
+
+
+  public override void _Process(double delta)
   {
     //Call update which calls _Draw
-    Update();
+    QueueRedraw();
   }
 
   //Updates dict with material cost
   public void GetWeaponMaterialCost(Inventory playerInventory)
   {
-    costOfWeapon = new Dictionary<Materials.Material, int>();
+    costOfWeapon = new System.Collections.Generic.Dictionary<Material, int>();
     List<string> partsMissingMaterials = new List<string>();
     if(IsWeaponsMaterialsSelected(weaponRootNode, ref partsMissingMaterials))
     {
@@ -720,14 +713,14 @@ public class CraftingMaterialSystem : Control
     string missingMaterials = string.Empty;
 
     if(costOfWeapon != null)
-    { 
+    {
       playerCanCraftWeapon = true;
       //Check playerInventory against items
       foreach (var item in costOfWeapon)
       {
         if(!playerInventory.HasMaterial(item.Key, item.Value))
         {
-          missingMaterials += "Missing " + (item.Value - playerInventory.GetMaterialCount(item.Key)).ToString() + " pieces of " + item.Key.ToString() + "\n";
+          missingMaterials += "Missing " + (item.Value - playerInventory.GetMaterialCount(item.Key)) + " pieces of " + item.Key + "\n";
           playerCanCraftWeapon = false;
         }
       }
@@ -738,10 +731,10 @@ public class CraftingMaterialSystem : Control
   }
 
   //Simply recursively check if the weapon has its material selected
-  public bool IsWeaponsMaterialsSelected(Parts.WeaponBlueprintNode node, ref List<string> partsMissingMaterials)
+  public bool IsWeaponsMaterialsSelected(WeaponBlueprintNode node, ref List<string> partsMissingMaterials)
   {
     bool materialsSelected = true;
-    
+
     if(node.part.currentMaterial == Materials.Material.Undefined)
     {
       materialsSelected = false;
@@ -750,21 +743,21 @@ public class CraftingMaterialSystem : Control
 
     foreach(var child in node.children)
     {
-      if(IsWeaponsMaterialsSelected(child.Value, ref partsMissingMaterials) == false)
+      if(!IsWeaponsMaterialsSelected(child.Value, ref partsMissingMaterials))
         materialsSelected = false;
     }
     return materialsSelected;
   }
 
-  public Dictionary<Materials.Material, int> GetCostOfWeaponNode(Parts.WeaponBlueprintNode node)
+  public System.Collections.Generic.Dictionary<Material, int> GetCostOfWeaponNode(WeaponBlueprintNode node)
   {
-    Dictionary<Materials.Material, int> currentCost = new Dictionary<Materials.Material, int>();
+    System.Collections.Generic.Dictionary<Material, int> currentCost = new System.Collections.Generic.Dictionary<Material, int>();
 
     currentCost.Add(node.part.currentMaterial, node.part.materialCost);
 
     foreach(var child in node.children)
     {
-      Dictionary<Materials.Material, int> childCost = GetCostOfWeaponNode(child.Value);
+      System.Collections.Generic.Dictionary<Material, int> childCost = GetCostOfWeaponNode(child.Value);
 
       //Combine dicts
       foreach (var childVal in childCost)
@@ -786,7 +779,7 @@ public class CraftingMaterialSystem : Control
   public static int GetMinYSizeFromRichTextLabel(RichTextLabel label)
   {
     //min size is num lines * font size + spacings
-    return (1 + label.BbcodeText.Count("\n")) * ((label.Theme.DefaultFont as DynamicFont).Size + (label.Theme.DefaultFont as DynamicFont).ExtraSpacingBottom + (label.Theme.DefaultFont as DynamicFont).ExtraSpacingTop);
+    return (1 + label.Text.Count("\n")) * ((label.Theme.DefaultFontSize) + (label.Theme.DefaultFont).GetSpacing(TextServer.SpacingType.Bottom) + (label.Theme.DefaultFont).GetSpacing(TextServer.SpacingType.Top));
   }
 
   //callback from create weapon button, only available when the player can craft a weapon
@@ -794,10 +787,10 @@ public class CraftingMaterialSystem : Control
   {
     string weaponName = "New Created Weapon";
     //For now just set a basic sprite as the image
-    Parts.ConstructedWeapon newWeapon = new Parts.ConstructedWeapon(weaponName, summationStats, ResourceLoader.Load<Texture>("res://Assets/Art/My_Art/BlueprintIcons/Medium_Sword.png"), summationStats.GenerateStatText(null, 0, false));
+    ConstructedWeapon newWeapon = new ConstructedWeapon(weaponName, summationStats, ResourceLoader.Load<Texture2D>("res://Assets/Art/My_Art/BlueprintIcons/Medium_Sword.png"), summationStats.GenerateStatText(null, 0, false));
     playerManager.playerInventory.AddUniqueItem(weaponName, newWeapon);
 
-    Dictionary<Materials.Material, int> weaponCost =  GetCostOfWeaponNode(weaponRootNode);
+    System.Collections.Generic.Dictionary<Material, int> weaponCost =  GetCostOfWeaponNode(weaponRootNode);
 
     //When crafting then weapon charge the player
     foreach (var cost in weaponCost)
@@ -812,15 +805,15 @@ public class CraftingMaterialSystem : Control
 
   public void ResetWeapon()
   {
-    weaponRootNode = new Parts.WeaponBlueprintNode();
-    weaponRootNode.part = allPartsDict[Parts.PartType.Handle][0];
+    weaponRootNode = new WeaponBlueprintNode();
+    weaponRootNode.part = allPartsDict[PartType.Handle][0];
     GetNode<RichTextLabel>("ParchmentBackground/CurrentWeaponInfo").Text = string.Empty;
 
     //Reset attach points
     foreach (var attachPt in weaponRootNode.part.partAttachPoints)
     {
       attachPt.attachedPart = false;
-    }  
+    }
     SetModePartSelection();
   }
 
@@ -838,7 +831,7 @@ public class CraftingMaterialSystem : Control
 
 
   //Need data + size + offset
-  Image GetWeaponSpriteInfo(Parts.WeaponBlueprintNode node)
+  Image GetWeaponSpriteInfo(WeaponBlueprintNode node)
   {
     Image weaponSprite = new Image();
         //TODO construct weapon sprite stuff here, the pain of finding the bounds of the weapon and placing the pixels correctly
@@ -848,33 +841,33 @@ public class CraftingMaterialSystem : Control
 
 
   //Loads the list of all possible parts of the passed part blueprint
-  public void LoadPartSelection(Parts.WeaponBlueprintNode currentNode)
+  public void LoadPartSelection(WeaponBlueprintNode currentNode)
   {
     //Load all parts of this type
     foreach (var part in allPartsDict[currentNode.part.partType])
     {
       //Load part as clickable button with callback to set the current piece of the current blueprint as this piece
-      CallbackTextureButton partSelectionButton = CreateCallbackButtonFromBlueprint(part, () => 
+      CallbackTextureButton partSelectionButton = CreateCallbackButtonFromBlueprint(part, () =>
       {
         ClearPartSelection();
-        currentNode.IterateNode((currNode) => 
+        currentNode.IterateNode(currNode =>
         {
           foreach (var attachPt in currNode.part.partAttachPoints)
           {
               attachPt.attachedPart = false;
-          }  
+          }
         });
 
         currentNode.ClearNodeChildren();
         currentNode.part = part;
         GeneratePartVisualizerUIFromCurrentParts();
       }, new Vector2(1,1), false, true, true);
-      
+
       partSelectionButton.Modulate = partSelectionButton.defaultColor;
 
       /////////////////////////////////////////////////////////////////////////////////////////////////
       //Generate Detail Sprites
-      HBoxContainer hBox = CallbackTextureButtonWithTextScene.Instance() as HBoxContainer;
+      HBoxContainer hBox = CallbackTextureButtonWithTextScene.Instantiate() as HBoxContainer;
 
       Node partIconParentNode = hBox.GetNode("VBoxContainer/HSplitContainer");
       Node node = partIconParentNode.GetNode("PartIcon");
@@ -883,19 +876,19 @@ public class CraftingMaterialSystem : Control
       partIconParentNode.AddChild(partSelectionButton);     //add constructed obj
       partIconParentNode.MoveChild(partSelectionButton,0);  //move to pos 0
 
-      partSelectionButton.RectMinSize = MinPartSelectionSize;
+      partSelectionButton.CustomMinimumSize = MinPartSelectionSize;
 
-      RichTextLabel detailText = hBox.GetNode<RichTextLabel>("VBoxContainer/HSplitContainer/PartData") as RichTextLabel;
-      detailText.BbcodeText = part.stats.GenerateStatText(currentNode.part, 0);
+      RichTextLabel detailText = hBox.GetNode<RichTextLabel>("VBoxContainer/HSplitContainer/PartData");
+      detailText.Text = part.stats.GenerateStatText(currentNode.part);
       detailText.BbcodeEnabled = true;
-      detailText.RectMinSize = new Vector2(detailText.RectMinSize.x,GetMinYSizeFromRichTextLabel(detailText));
+      detailText.CustomMinimumSize = new Vector2(detailText.CustomMinimumSize.X,GetMinYSizeFromRichTextLabel(detailText));
       //Dont change colors with the callbacks
       newPartSelectionContainer.AddChild(hBox);
     }
   }
 
   //Loads the list of all possible parts of the passed attachment point
-  public void LoadPartSelectionAttachPoint(Parts.AttachPoint attachPoint, Parts.WeaponBlueprintNode parentNode, CallbackTextureButton newAttachPointButton)
+  public void LoadPartSelectionAttachPoint(AttachPoint attachPoint, WeaponBlueprintNode parentNode, CallbackTextureButton newAttachPointButton)
   {
     foreach (var partType in attachPoint.partTypes)
     {
@@ -903,22 +896,22 @@ public class CraftingMaterialSystem : Control
       foreach (var part in allPartsDict[partType])
       {
         //Load part as clickable button with callback to set the current piece of the current blueprint as this piece
-        CallbackTextureButton partSelectionButton = CreateCallbackButtonFromBlueprint(part, () => 
+        CallbackTextureButton partSelectionButton = CreateCallbackButtonFromBlueprint(part, () =>
         {
           ClearPartSelection();
           attachPoint.attachedPart = true;
           partVisualizerContainer.RemoveChild(newAttachPointButton);
           //Set the x/y pos of the attach point to the actual node that represents the part
-          Parts.WeaponBlueprintNode newNode = new Parts.WeaponBlueprintNode(part, parentNode);
-          parentNode.children.Add(attachPoint, newNode); 
-          GeneratePartVisualizerUIFromCurrentParts(); 
-        }, new Vector2(1,1), false, true, false); 
+          WeaponBlueprintNode newNode = new WeaponBlueprintNode(part, parentNode);
+          parentNode.children.Add(attachPoint, newNode);
+          GeneratePartVisualizerUIFromCurrentParts();
+        }, new Vector2(1,1));
 
         partSelectionButton.Modulate = partSelectionButton.defaultColor;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         //Generate Detail Sprites
-        HBoxContainer hBox = CallbackTextureButtonWithTextScene.Instance() as HBoxContainer;
+        HBoxContainer hBox = CallbackTextureButtonWithTextScene.Instantiate() as HBoxContainer;
 
         Node partIconParentNode = hBox.GetNode("VBoxContainer/HSplitContainer");
         Node node = partIconParentNode.GetNode("PartIcon");
@@ -927,12 +920,12 @@ public class CraftingMaterialSystem : Control
         partIconParentNode.AddChild(partSelectionButton);     //add constructed obj
         partIconParentNode.MoveChild(partSelectionButton,0);  //move to pos 0
 
-        partSelectionButton.RectMinSize = MinPartSelectionSize;
+        partSelectionButton.CustomMinimumSize = MinPartSelectionSize;
 
-        RichTextLabel detailText = hBox.GetNode<RichTextLabel>("VBoxContainer/HSplitContainer/PartData") as RichTextLabel;
-        detailText.BbcodeText = part.stats.GenerateStatText(null, 0);
+        RichTextLabel detailText = hBox.GetNode<RichTextLabel>("VBoxContainer/HSplitContainer/PartData");
+        detailText.Text = part.stats.GenerateStatText();
         detailText.BbcodeEnabled = true;
-        detailText.RectMinSize = new Vector2(detailText.RectMinSize.x, GetMinYSizeFromRichTextLabel(detailText));
+        detailText.CustomMinimumSize = new Vector2(detailText.CustomMinimumSize.X, GetMinYSizeFromRichTextLabel(detailText));
         //Dont change colors with the callbacks
         newPartSelectionContainer.AddChild(hBox);
       }

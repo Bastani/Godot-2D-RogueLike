@@ -1,10 +1,11 @@
 using Godot;
-using System;
+using Materials;
+using Material = Materials.Material;
 
-public class OreWorldObject : Interactable
+public partial class OreWorldObject : Interactable
 {
   [Signal]
-  public delegate void OreOverlappingSignal(bool overlapping, OreWorldObject oreNode);
+  public delegate void OreOverlappingSignalEventHandler(bool overlapping, OreWorldObject oreNode);
   
   // Declare member variables here. Examples:
   // private int a = 2;
@@ -12,7 +13,7 @@ public class OreWorldObject : Interactable
 
   // Called when the node enters the scene tree for the first time.
   [Export]
-  public Materials.Material material;
+  public Material material;
 
   [Export]
   public int amountInOre = 1;
@@ -20,32 +21,32 @@ public class OreWorldObject : Interactable
   [Export]
   public float timeToMine = 3;
 
-  CPUParticles2D cpuParticles2D;
-  
+  CpuParticles2D cpuParticles2D;
+
   private PackedScene inventoryObjectScene = (PackedScene)ResourceLoader.Load("res://Scenes/PickupWorldObjects/InventoryPickupWorldObject.tscn");
 
   public override void _Ready()
   {
     base._Ready();
-    cpuParticles2D = GetNode("CPUParticles2D") as CPUParticles2D;
+    cpuParticles2D = GetNode("CPUParticles2D") as CpuParticles2D;
 
     animatedSprite.Animation = "Iron Ores";
-    
+
     //Modulate the ore to the tint of the material
     //TODO unique sprites for each material type
-    animatedSprite.Modulate = Materials.MaterialTints.tints[material];
-    
+    animatedSprite.Modulate = MaterialTints.tints[material];
+
     animatedSprite.Frame = random.Next(0,10);
   }
 
   public void CreateInventoryObject()
   {
-    Node2D newInvObject = inventoryObjectScene.Instance() as Node2D; 
-    GetTree().Root.AddChild(newInvObject); 
+    Node2D newInvObject = inventoryObjectScene.Instantiate() as Node2D;
+    GetTree().Root.AddChild(newInvObject);
 
     //adds the new object as a child to the parent of this object so they are not tetherd together.
-    
-    newInvObject.GlobalPosition = this.GlobalPosition;
+
+    newInvObject.GlobalPosition = GlobalPosition;
     var invObj = (newInvObject as InventoryPickupWorldObject);
     invObj.inventoryObjectName = material.ToString();
     invObj.material = material;
@@ -53,12 +54,12 @@ public class OreWorldObject : Interactable
     invObj.isMaterial = true;
 
     //should be setting it to data loaded from a file for the craftable material property
-    newInvObject.GetNode<AnimatedSprite>("AnimatedSprite").Animation = "Ore Chunks";
-    newInvObject.GetNode<AnimatedSprite>("AnimatedSprite").Frame = (int)material;
+    newInvObject.GetNode<AnimatedSprite2D>("AnimatedSprite").Animation = "Ore Chunks";
+    newInvObject.GetNode<AnimatedSprite2D>("AnimatedSprite").Frame = (int)material;
     //InventoryObject.Get
   }
 
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);
 
@@ -66,7 +67,7 @@ public class OreWorldObject : Interactable
 		if(playerInteracting)
 		{
 			cpuParticles2D.Emitting = true;
-			timeToMine -= delta;
+			timeToMine -= (float)delta;
 
 			//if spent enough time mining ore
 			if(timeToMine <= 0)

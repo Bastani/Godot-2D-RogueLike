@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Shot04.wav-b8a0d489d0dce8bd54d95004930a4cda.sample"
+type="AudioStreamWAV"
+uid="uid://bibg2x7u0poan"
+path="res://.godot/imported/Shot04.wav-b8a0d489d0dce8bd54d95004930a4cda.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Shot04.wav"
-dest_files=[ "res://.import/Shot04.wav-b8a0d489d0dce8bd54d95004930a4cda.sample" ]
+dest_files=["res://.godot/imported/Shot04.wav-b8a0d489d0dce8bd54d95004930a4cda.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

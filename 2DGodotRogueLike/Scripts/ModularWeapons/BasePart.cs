@@ -1,13 +1,17 @@
-using Godot;
-using System;
 namespace Parts
 {
+  using System.Collections.Generic;
+  using Godot;
+  using Godot.Collections;
+  using Materials;
+  using Material = Materials.Material;
+
   public delegate void WeaponBPNodeFunc(WeaponBlueprintNode node);
   //Node structure for weapon blueprints to represent the current parts as a node structure for positioning objects
   public class WeaponBlueprintNode
   {
-    public PartBlueprint part = null;
-    public WeaponBlueprintNode parent = null;
+    public PartBlueprint part;
+    public WeaponBlueprintNode parent;
     public Vector2 currentOffset = Vector2.Zero;
     public System.Collections.Generic.Dictionary<AttachPoint,WeaponBlueprintNode> children = new System.Collections.Generic.Dictionary<AttachPoint,WeaponBlueprintNode>();
 
@@ -39,10 +43,10 @@ namespace Parts
 
   public class AttachPoint
   {
-    public Vector2 pos = new Vector2();
-    public Godot.Collections.Array<Parts.PartType> partTypes = new  Godot.Collections.Array<Parts.PartType>();
+    public Vector2 pos;
+    public Array<PartType> partTypes = new  Array<PartType>();
     public bool attachedPart = false;
-    public AttachPoint(Vector2 _pos, Godot.Collections.Array<Parts.PartType> _partTypes)
+    public AttachPoint(Vector2 _pos, Array<PartType> _partTypes)
     {
       pos = _pos;
       partTypes = _partTypes;
@@ -52,15 +56,15 @@ namespace Parts
   public class PartStats 
   {
     //Slash damage is damage in slashing attack
-    public float slashDamage = 0;
+    public float slashDamage;
     //Stab damage is damage in stab attack
-    public float stabDamage = 0;
+    public float stabDamage;
     //Attack speed is howhow many attacks per second
-    public float attackWindUp = 0;
+    public float attackWindUp;
     //Swing speed affects how fast the blade is swung, more is fast swing and stab
-    public float attackWindDown = 0;
+    public float attackWindDown;
     //Length is the reach of the weapon
-    public float length = 0;
+    public float length;
     //Special stat is a special stat
     public string specialStat = "None";
 
@@ -75,13 +79,13 @@ namespace Parts
     }
 
     //Sets special stat to both
-    public static PartStats GetCombinationOfStats(PartStats lhs, PartStats rhs, Materials.Material material)
+    public static PartStats GetCombinationOfStats(PartStats lhs, PartStats rhs, Material material)
     {
       PartStats result = new PartStats();
-      result.slashDamage += (lhs.slashDamage + rhs.slashDamage) * Materials.MaterialStats.stats[material].damageMult;
-      result.stabDamage += (lhs.stabDamage + rhs.stabDamage) * Materials.MaterialStats.stats[material].damageMult;
-      result.attackWindUp += (lhs.attackWindUp + rhs.attackWindUp) * Materials.MaterialStats.stats[material].windMult;
-      result.attackWindDown += (lhs.attackWindDown + rhs.attackWindDown) * Materials.MaterialStats.stats[material].windMult;
+      result.slashDamage += (lhs.slashDamage + rhs.slashDamage) * MaterialStats.stats[material].damageMult;
+      result.stabDamage += (lhs.stabDamage + rhs.stabDamage) * MaterialStats.stats[material].damageMult;
+      result.attackWindUp += (lhs.attackWindUp + rhs.attackWindUp) * MaterialStats.stats[material].windMult;
+      result.attackWindDown += (lhs.attackWindDown + rhs.attackWindDown) * MaterialStats.stats[material].windMult;
       result.length += lhs.length + rhs.length;
 
       if(lhs.specialStat != "None" && rhs.specialStat != "None")
@@ -101,7 +105,7 @@ namespace Parts
     [Export]
     static public Color specialStatColor = new Color("bd20b2");
     [Export]
-    static public Color normalstatcolor = new Color(1,1,1,1);
+    static public Color normalstatcolor = new Color(1,1,1);
     // returns a string of a - b, 100 - 20 returns "+80) and empty str for zero
 
     public string BBCodeColorString(string str, Color color)
@@ -133,7 +137,7 @@ namespace Parts
       string baseStat = "";
       //if(value != threshold)
       //{
-        baseStat = name + (relativeNum ? GetSignAndValue(value, threshold, lowNumberGreen) : " " + value.ToString()) + "\n";
+        baseStat = name + (relativeNum ? GetSignAndValue(value, threshold, lowNumberGreen) : " " + value) + "\n";
       //}
       return baseStat;
     }
@@ -171,7 +175,7 @@ namespace Parts
       //remove the last newline
       if(tempStr != "")
       {
-        tempStr = tempStr.Remove(tempStr.FindLast("\n"),1);
+        tempStr = tempStr.Remove(tempStr.FindN("\n"),1);
       }
       else
       {
@@ -182,9 +186,9 @@ namespace Parts
     }
   }
   
-  public class PartBlueprint : Resource
+  public partial class PartBlueprint : Resource
   {
-    public static long currentUniquePieceNum = 0;
+    public static long currentUniquePieceNum;
 
     //UUID for pieces
     public long uuid { get; private set; } = currentUniquePieceNum++;
@@ -195,20 +199,20 @@ namespace Parts
     [Export]
     public int materialCost { get; set; } = 5;
 
-    public Materials.Material currentMaterial = Materials.Material.Undefined;
+    public Material currentMaterial = Material.Undefined;
 
     [Export]
     public PartType partType { get; set; } = PartType.Undefined;
     
-    public Texture texture { get; set; }
-    public BitMap bitMask { get; set; }
+    public Texture2D texture { get; set; }
+    public Bitmap bitMask { get; set; }
     
     public PartStats stats = new PartStats();
     public Vector2 baseAttachPoint = new Vector2();
     
     //List of tuples of x/y coords and arrays of part types that are accepted
-    public System.Collections.Generic.List<AttachPoint> partAttachPoints = 
-      new System.Collections.Generic.List<AttachPoint>();
+    public List<AttachPoint> partAttachPoints =
+      new List<AttachPoint>();
     
     public PartBlueprint(){}
     public PartBlueprint(PartBlueprint rhs)
@@ -222,17 +226,17 @@ namespace Parts
 
     public void ResetPart()
     {
-      currentMaterial = Materials.Material.Undefined;
+      currentMaterial = Material.Undefined;
     }
   }
 
   public class ConstructedWeapon
   {
     public PartStats stats = new PartStats();
-    public Texture texture;
+    public Texture2D texture;
     public string detailText;
     public string name;
-    public ConstructedWeapon(string _name,PartStats _stats, Texture _sprite, string _detailText)
+    public ConstructedWeapon(string _name,PartStats _stats, Texture2D _sprite, string _detailText)
     {
       name = _name;
       stats = _stats;

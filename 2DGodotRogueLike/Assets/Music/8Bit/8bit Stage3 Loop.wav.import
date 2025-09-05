@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/8bit Stage3 Loop.wav-de86a0b6fa74b1d5ce10eebaf5b11d33.sample"
+type="AudioStreamWAV"
+uid="uid://jlob41fptlko"
+path="res://.godot/imported/8bit Stage3 Loop.wav-de86a0b6fa74b1d5ce10eebaf5b11d33.sample"
 
 [deps]
 
 source_file="res://Assets/Music/8Bit/8bit Stage3 Loop.wav"
-dest_files=[ "res://.import/8bit Stage3 Loop.wav-de86a0b6fa74b1d5ce10eebaf5b11d33.sample" ]
+dest_files=["res://.godot/imported/8bit Stage3 Loop.wav-de86a0b6fa74b1d5ce10eebaf5b11d33.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

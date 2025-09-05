@@ -1,4 +1,4 @@
-﻿<Project Sdk="Godot.NET.Sdk/3.3.0">
+﻿<Project Sdk="Godot.NET.Sdk/4.5.0-beta.6">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Tools</Configuration>
     <ProjectGuid>{6409DC7C-D72F-4D7E-9188-5AB16F3752B0}</ProjectGuid>
@@ -6,7 +6,7 @@
     <RootNamespace>DGodotRogueLike</RootNamespace>
     <AssemblyName>2D Godot Rogue Like</AssemblyName>
     <GodotProjectGeneratorVersion>1.0.7374.16792</GodotProjectGeneratorVersion>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <!--The following properties were overriden during migration to prevent errors.
     Enabling them may require other manual changes to the project and its files.-->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

@@ -1,5 +1,4 @@
-using Godot;
-using System;
+
 
 
 /*
@@ -119,7 +118,7 @@ public class WFCSimpleTiledModel
   }
 
 //  // Called every frame. 'delta' is the elapsed time since the previous frame.
-//  public override void _Process(float delta)
+//  public override void _Process(double delta)
 //  {
 //      
 //  }

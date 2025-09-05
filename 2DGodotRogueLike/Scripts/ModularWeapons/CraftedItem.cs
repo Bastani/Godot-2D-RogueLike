@@ -1,8 +1,10 @@
-using Godot;
 using System;
+using Godot;
 using Godot.Collections;
+using Parts;
+using Material = Materials.Material;
 
-public class CraftedItem : Resource
+public partial class CraftedItem : Resource
 {
     [Export]
     public string name { get; private set; } = "CraftedItem";
@@ -11,7 +13,7 @@ public class CraftedItem : Resource
     public string iconSpriteName  { get; private set; } = "Medium_Sword";
     
     //A blueprint is made up of a list of required pieces
-    public Array<Tuple<Materials.Material, Parts.PartBlueprint>> weaponParts = new Array<Tuple<Materials.Material, Parts.PartBlueprint>>{};
+    public Dictionary<Material, PartBlueprint> weaponParts = new();
 
     //scale ratio of inv
     CallbackTextureButton CreateCraftedItemSprite(float invScale)
@@ -35,7 +37,7 @@ public class CraftedItem : Resource
                 currentNode = currentNode.GetChild(0) as CallbackTextureButton;
             }
 
-            currentNode.TextureNormal = part.Item2.texture;
+            currentNode.TextureNormal = part.Value.texture;
             currentNode.SetSize(new Vector2(1,1) * invScale);
             currentNode.onButtonPressedCallback = () 
             => {

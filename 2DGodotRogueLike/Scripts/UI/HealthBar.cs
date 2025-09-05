@@ -1,13 +1,12 @@
 using Godot;
-using System;
 
-public class HealthBar : Control
+public partial class HealthBar : Control
 {
-  TextureProgress healthBarUIElement;
+  TextureProgressBar healthBarUIElement;
 
   public override void _Ready()
   {
-	  healthBarUIElement = GetNode("HealthBarProgress") as TextureProgress;
+	  healthBarUIElement = GetNode("HealthBarProgress") as TextureProgressBar;
   }
   
   //Sets the current health of the UI element

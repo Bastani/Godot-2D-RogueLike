@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Slash04.wav-2507f1c0b5cc60e665aa0c5ee73fcac5.sample"
+type="AudioStreamWAV"
+uid="uid://p160vrn5ew4y"
+path="res://.godot/imported/Slash04.wav-2507f1c0b5cc60e665aa0c5ee73fcac5.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Slash04.wav"
-dest_files=[ "res://.import/Slash04.wav-2507f1c0b5cc60e665aa0c5ee73fcac5.sample" ]
+dest_files=["res://.godot/imported/Slash04.wav-2507f1c0b5cc60e665aa0c5ee73fcac5.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

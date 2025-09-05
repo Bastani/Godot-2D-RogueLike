@@ -1,20 +1,20 @@
 using Godot;
-using System;
 
-public class OptionsMenuPopupFix : OptionButton
+public partial class OptionsMenuPopupFix : OptionButton
 {
   [Export]
-  public Vector2 offset;
+  public Vector2I offset;
   public override void _Ready()
   {
-      //-y up
-    offset = new Vector2(0, GetPopup().RectSize.y);
+      // -y up. In Godot 4, PopupMenu is a Window with Vector2I Size/Position
+      offset = new Vector2I(0, GetPopup().Size.Y);
   }
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _Process(float delta)
+  public override void _Process(double delta)
   {
-    GetPopup().SetPosition(RectGlobalPosition + offset);
-    //Make sure on the top
-    GetPopup().SetAsToplevel(true);
+    // Position in screen coordinates
+    GetPopup().Position = (Vector2I)GlobalPosition + offset;
+    // Keep on top in the OS window
+    GetPopup().AlwaysOnTop = true;
   }
 }

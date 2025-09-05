@@ -1,8 +1,7 @@
-using Godot;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 public class ChokePointFinder
 {
@@ -20,17 +19,17 @@ public class ChokePointFinder
   
   public class CPFNode
   {
-    public Vector2 pos = new Vector2();
+    public Vector2 pos;
     public CPFNode parent;
     public List<CPFNode> children = new List<CPFNode>();
     public NodeState state = NodeState.NotChecked;
-  };
+  }
 
   public class BasicFloodFillNode
   {
-    public KeyValuePair<int,int> pos = new KeyValuePair<int,int>();
+    public KeyValuePair<int,int> pos;
     public NodeState state = NodeState.NotChecked;
-  };
+  }
 
   public class NodeQueueSorter : Comparer<CPFNode>
   {
@@ -45,20 +44,23 @@ public class ChokePointFinder
       {
         return x.pos.DistanceSquaredTo(rootNode.pos).CompareTo(y.pos.DistanceSquaredTo(rootNode.pos));
       }
-      else if(x.pos.x.CompareTo(y.pos.x) != 0)
+
+      if(x.pos.X.CompareTo(y.pos.X) != 0)
       {
-        return x.pos.x.CompareTo(y.pos.x);
+        return x.pos.X.CompareTo(y.pos.X);
       }
-      else if(x.pos.y.CompareTo(y.pos.y) != 0)
+
+      if(x.pos.Y.CompareTo(y.pos.Y) != 0)
       {
-        return x.pos.y.CompareTo(y.pos.y);
+        return x.pos.Y.CompareTo(y.pos.Y);
       }
-      else if(x.GetHashCode().CompareTo(y.GetHashCode()) != 0)
+
+      if(x.GetHashCode().CompareTo(y.GetHashCode()) != 0)
       {
         return x.GetHashCode().CompareTo(y.GetHashCode());
       }
-      else
-        return 0;
+
+      return 0;
     }
   }
 
@@ -72,9 +74,9 @@ public class ChokePointFinder
   int width;
   int height;
 
-  Godot.TileMap directedGraphVisMap = new TileMap();
-  Godot.TileMap roomVisMap = new TileMap();
-  Godot.TileMap KMeansVisMap = new TileMap();
+  TileMap directedGraphVisMap = new TileMap();
+  TileMap roomVisMap = new TileMap();
+  TileMap KMeansVisMap = new TileMap();
   CPFNode rootNode = new CPFNode();
   Dictionary<Vector2, int> DebugDirToTile = new Dictionary<Vector2, int>
   {
@@ -105,17 +107,17 @@ public class ChokePointFinder
   Dictionary<KeyValuePair<int, int>, int> KMeansSets = new Dictionary<KeyValuePair<int, int>, int>();
 #endregion
 #region Map Functions
-  public void SetDirectedGraphVisualizationMap(ref Dictionary<string,Godot.TileMap> _mapIDVisualization, string map)
+  public void SetDirectedGraphVisualizationMap(ref Dictionary<string,TileMap> _mapIDVisualization, string map)
   {
     directedGraphVisMap = _mapIDVisualization[map];
   }
 
-  public void SetRoomVisualizationMap(ref Dictionary<string,Godot.TileMap> _mapIDVisualization, string map)
+  public void SetRoomVisualizationMap(ref Dictionary<string,TileMap> _mapIDVisualization, string map)
   {
     roomVisMap = _mapIDVisualization[map];
   }
 
-  public void SetKMeansVisMap(ref Dictionary<string,Godot.TileMap> _mapIDVisualization, string map)
+  public void SetKMeansVisMap(ref Dictionary<string,TileMap> _mapIDVisualization, string map)
   {
     KMeansVisMap = _mapIDVisualization[map];
   }
@@ -184,7 +186,7 @@ public class ChokePointFinder
         for (int j = 0; j < centroids.Count; j++)
         {
           //Distance formula squared = (x2-x1)^2 + (y2-y1)^2
-          float dist = ((centroids[j].x - point.Key) * (centroids[j].x - point.Key)) + ((centroids[j].y - point.Value) * (centroids[j].y - point.Value));
+          float dist = ((centroids[j].X - point.Key) * (centroids[j].X - point.Key)) + ((centroids[j].Y - point.Value) * (centroids[j].Y - point.Value));
           
           //Get smallest distance
           if(dist < closestDistSq)
@@ -277,7 +279,7 @@ public class ChokePointFinder
       //4.   Set n equal to the first element of Q.
       BasicFloodFillNode currNode = genericNodeQueue.First();
       //5.   Remove first element from Q.
-      //Console.WriteLine("Checking Node: " + currNode.pos.x.ToString() + ", " + currNode.pos.y.ToString());
+      //Console.WriteLine("Checking Node: " + currNode.pos.X.ToString() + ", " + currNode.pos.Y.ToString());
       //Console.WriteLine("Queue Size: " + queue.Count.ToString());
       genericNodeQueue.Remove(currNode);
       connectedPoints.Add(currNode.pos);
@@ -299,7 +301,7 @@ public class ChokePointFinder
             continue;
 
           //0 is floor
-          if(nodeToCheckPredicate((int)currNode.pos.Key + i, (int)currNode.pos.Value + j))
+          if(nodeToCheckPredicate(currNode.pos.Key + i, currNode.pos.Value + j))
           {
             KeyValuePair<int, int> checkPos = new KeyValuePair<int, int>(currNode.pos.Key + i, currNode.pos.Value + j);
 
@@ -329,7 +331,7 @@ public class ChokePointFinder
       //7. Continue looping until Q is exhausted.
       //8. Return.
     }
-    return connectedPoints.ToList<KeyValuePair<int,int>>();
+    return connectedPoints.ToList();
   }
 
   public bool GenerateWeightedKMeansFromTerrain(int numClusters, List<KeyValuePair<int, int>> pointCloud, Dictionary<KeyValuePair<int, int>, float> startingPoints = null, int numIterations = 100, bool runIteratively = false)
@@ -374,7 +376,7 @@ public class ChokePointFinder
         for (int j = 0; j < centroids.Count; j++)
         {
           //Distance formula squared = (x2-x1)^2 + (y2-y1)^2
-          float dist = ((centroids[j].x - point.Key) * (centroids[j].x - point.Key)) + ((centroids[j].y - point.Value) * (centroids[j].y - point.Value));
+          float dist = ((centroids[j].X - point.Key) * (centroids[j].X - point.Key)) + ((centroids[j].Y - point.Value) * (centroids[j].Y - point.Value));
           
           //Get smallest distance
           if(dist * centroidsWeight[j] < closestDistSq)
@@ -447,7 +449,7 @@ public class ChokePointFinder
       //4.   Set n equal to the first element of Q.
       CPFNode currNode = CPFNodeQueue.First();
       //5.   Remove first element from Q.
-      //Console.WriteLine("Checking Node: " + currNode.pos.x.ToString() + ", " + currNode.pos.y.ToString());
+      //Console.WriteLine("Checking Node: " + currNode.pos.X.ToString() + ", " + currNode.pos.Y.ToString());
       //Console.WriteLine("Queue Size: " + queue.Count.ToString());
       NodesChecked++;
       CPFNodeQueue.Remove(currNode);
@@ -470,16 +472,16 @@ public class ChokePointFinder
             continue;
 
           //0 is floor
-          if(nodeToCheckPredicate((int)currNode.pos.x + i, (int)currNode.pos.y + j))
+          if(nodeToCheckPredicate((int)currNode.pos.X + i, (int)currNode.pos.Y + j))
           {
-            Vector2 checkPos = new Vector2(currNode.pos.x + i, currNode.pos.y + j);
+            Vector2 checkPos = new Vector2(currNode.pos.X + i, currNode.pos.Y + j);
 
             //If node hasn't been checked yet
             if(!checkedPosVec2.TryGetValue(checkPos, out checkPos))
             {
               //If node doesn't exist then create new node
               CPFNode newNode = new CPFNode();
-              newNode.pos = new Vector2(currNode.pos.x + i, currNode.pos.y + j);
+              newNode.pos = new Vector2(currNode.pos.X + i, currNode.pos.Y + j);
               //need to show that we have checked this node.... not adding this allows us to create multiple nodes for each tile
               checkedPosVec2.Add(newNode.pos);
               newNode.parent = currNode;
@@ -488,7 +490,7 @@ public class ChokePointFinder
               //Make sure to add to the end
               CPFNodeQueue.Add(newNode);
               //queue.Add(newNode);
-              directedGraphVisMap.SetCell((int)currNode.pos.x , (int)currNode.pos.y , 9);  //9 is open list
+              directedGraphVisMap.SetCell(0,new Vector2I((int)currNode.pos.X , (int)currNode.pos.Y) , 9);  //9 is open list
             }
           }
         }
@@ -551,10 +553,10 @@ public class ChokePointFinder
     
     if(currNode.state == NodeState.OpenList) 
     {
-      directedGraphVisMap.SetCell((int)currNode.pos.x , (int)currNode.pos.y , 9);  //9 is open list
+      directedGraphVisMap.SetCell(0,new Vector2I((int)currNode.pos.X , (int)currNode.pos.Y) , 9);  //9 is open list
     }
     else
-      directedGraphVisMap.SetCell((int)currNode.pos.x , (int)currNode.pos.y , DebugDirToTile[offsetToParent]);
+      directedGraphVisMap.SetCell(0,new Vector2I((int)currNode.pos.X , (int)currNode.pos.Y) , DebugDirToTile[offsetToParent]);
 
     foreach (var child in currNode.children)
     {
@@ -567,7 +569,7 @@ public class ChokePointFinder
     //KMeansSet is dict of KV pairs to ID
     foreach (var item in KMeansSets)
     {
-      KMeansVisMap.SetCell(item.Key.Key , item.Key.Value , (item.Value * 3) % maxColors);
+      KMeansVisMap.SetCell(0, new Vector2I(item.Key.Key , item.Key.Value) , (item.Value * 3) % maxColors);
     }
   }
 #endregion

@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Slash02.wav-5b5bef1cb42aadf94343d590a38c3da4.sample"
+type="AudioStreamWAV"
+uid="uid://dqr8brlymxyu0"
+path="res://.godot/imported/Slash02.wav-5b5bef1cb42aadf94343d590a38c3da4.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Slash02.wav"
-dest_files=[ "res://.import/Slash02.wav-5b5bef1cb42aadf94343d590a38c3da4.sample" ]
+dest_files=["res://.godot/imported/Slash02.wav-5b5bef1cb42aadf94343d590a38c3da4.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Journey into Fog (looped).wav-cd79a587ec4b9ca8201dd3cc1ce69bfb.sample"
+type="AudioStreamWAV"
+uid="uid://cgcnh3y4mmlyb"
+path="res://.godot/imported/Journey into Fog (looped).wav-cd79a587ec4b9ca8201dd3cc1ce69bfb.sample"
 
 [deps]
 
 source_file="res://Assets/Music/BackgroundMusic/FantasyAdventureGameMusicPack/Journey into Fog (looped).wav"
-dest_files=[ "res://.import/Journey into Fog (looped).wav-cd79a587ec4b9ca8201dd3cc1ce69bfb.sample" ]
+dest_files=["res://.godot/imported/Journey into Fog (looped).wav-cd79a587ec4b9ca8201dd3cc1ce69bfb.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=true
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

@@ -1,14 +1,13 @@
 using Godot;
-using System;
 
-public class EndOfLevelUI : Control
+public partial class EndOfLevelUI : Control
 {
   public TestLevelGeneration testLevelGeneration;
   public PlayerManager playerManager;
 
   PackedScene newGameLevel = (PackedScene)ResourceLoader.Load("res://Scenes/Levels/Town.tscn");
 
-  public bool resetPlayerOnContinue = false;
+  public bool resetPlayerOnContinue;
 
   public void _on_ExitGameButton_pressed()
   {

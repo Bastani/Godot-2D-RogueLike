@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Beam03.wav-a06ee318aec8c3dc4b441879e799063b.sample"
+type="AudioStreamWAV"
+uid="uid://dfq1xc1nsejrs"
+path="res://.godot/imported/Beam03.wav-a06ee318aec8c3dc4b441879e799063b.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Beam03.wav"
-dest_files=[ "res://.import/Beam03.wav-a06ee318aec8c3dc4b441879e799063b.sample" ]
+dest_files=["res://.godot/imported/Beam03.wav-a06ee318aec8c3dc4b441879e799063b.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

@@ -1,7 +1,6 @@
 using Godot;
-using System;
 
-public class DungeonEntrance : Interactable
+public partial class DungeonEntrance : Interactable
 {
 
   PackedScene generatedLevelScene = (PackedScene)ResourceLoader.Load("res://Scenes/Levels/GeneratedLevel.tscn");
@@ -16,7 +15,7 @@ public class DungeonEntrance : Interactable
   public override void StartInteract()
 	{
     base.StartInteract();
-    GetTree().ChangeSceneTo(generatedLevelScene);
+    GetTree().ChangeSceneToPacked(generatedLevelScene);
 	}
 
 	//Called when player ends interaction with the object
@@ -26,7 +25,7 @@ public class DungeonEntrance : Interactable
 	}
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);
   }

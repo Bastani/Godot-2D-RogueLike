@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/In the spinning world 120 BPM.wav-86a708bd9dccb2a8f67f5b8b976b93c9.sample"
+type="AudioStreamWAV"
+uid="uid://bc1slpn6pbx40"
+path="res://.godot/imported/In the spinning world 120 BPM.wav-86a708bd9dccb2a8f67f5b8b976b93c9.sample"
 
 [deps]
 
 source_file="res://Assets/Music/8Bit/In the spinning world 120 BPM.wav"
-dest_files=[ "res://.import/In the spinning world 120 BPM.wav-86a708bd9dccb2a8f67f5b8b976b93c9.sample" ]
+dest_files=["res://.godot/imported/In the spinning world 120 BPM.wav-86a708bd9dccb2a8f67f5b8b976b93c9.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

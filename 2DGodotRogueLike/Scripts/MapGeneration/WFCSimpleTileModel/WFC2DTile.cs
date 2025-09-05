@@ -1,16 +1,14 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
 /*
 8 Transformation forms of a single tile, first line is 0 rotated counterclockwise by 90 degrees
 the second row is formed by Y axis mirrored images of the top row
  0   1   2   3
-XX  X0  0X  XX 
+XX  X0  0X  XX
 X0  XX  XX  0X
 
  4   5   6   7
-XX  0X  X0  XX 
+XX  0X  X0  XX
 0X  XX  XX  X0
 */
 
@@ -36,7 +34,7 @@ public enum SocketType
 }
 
 //Wave Function Collapse Simple Tiled Model Level single tile that contains symmetry and adjacency data for a tile
-public class WFC2DTile : Node
+public partial class WFC2DTile : Node
 {
   public SocketType northSocketType;
   public SocketType southSocketType;

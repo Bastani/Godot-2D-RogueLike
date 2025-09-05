@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Explosion6.wav-dfbc1bd1c3dfcd4bb5829b1930165700.sample"
+type="AudioStreamWAV"
+uid="uid://c4phvihesne1a"
+path="res://.godot/imported/Explosion6.wav-dfbc1bd1c3dfcd4bb5829b1930165700.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Explosion6.wav"
-dest_files=[ "res://.import/Explosion6.wav-dfbc1bd1c3dfcd4bb5829b1930165700.sample" ]
+dest_files=["res://.godot/imported/Explosion6.wav-dfbc1bd1c3dfcd4bb5829b1930165700.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

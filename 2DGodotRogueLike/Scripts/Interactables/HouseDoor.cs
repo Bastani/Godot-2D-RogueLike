@@ -1,16 +1,15 @@
 using Godot;
-using System;
 
-public class HouseDoor : Interactable
+public partial class HouseDoor : Interactable
 {
   //Sets the scene to this new scene
   PackedScene HouseIndoorScene = (PackedScene)ResourceLoader.Load("res://Scenes/Levels/GeneratedLevel.tscn");
 
-  bool flippedSprite = false;
-  bool startedInteract = false;
+  bool flippedSprite;
+  bool startedInteract;
 
   //Time before the item interacts
-  float timeLeft = 0f;
+  double timeLeft;
 
 
   // Called when the node enters the scene tree for the first time.
@@ -45,7 +44,7 @@ public class HouseDoor : Interactable
 	}
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);
 

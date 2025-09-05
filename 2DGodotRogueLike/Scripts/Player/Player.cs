@@ -1,7 +1,6 @@
 using Godot;
-using System;
 
-public class Player : KinematicBody2D
+public partial class Player : CharacterBody2D
 {
   // Declare member variables here. Examples:
   // private int a = 2;
@@ -18,7 +17,7 @@ public class Player : KinematicBody2D
 
 
   //todo Doesnt quite work, need better way to detect if above fallable block
-  bool OnTile = false;
+  bool OnTile;
   // Called when the node enters the scene tree for the first time.
   public override void _Ready()
   {
@@ -28,57 +27,60 @@ public class Player : KinematicBody2D
 
   public override void _Draw()
   {
-      this.DrawLine(Position,Position + velocity,Color.Color8(1,0,0,1));
-      this.DrawLine(Position,Position + new Vector2(0,50),Color.Color8(0,1,0,1));
+      DrawLine(Position, Position + velocity, new Color(1, 0, 0, 1));
+      DrawLine(Position, Position + new Vector2(0, 50), new Color(0, 1, 0, 1));
 
   }
 //  // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
 
-    AnimatedSprite animatedSprite = GetNode("AnimatedSprite") as AnimatedSprite;
-    RayCast2D raycast2D = GetNode("RayCast2D") as RayCast2D;
+    AnimatedSprite2D animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+    RayCast2D raycast2D = GetNode<RayCast2D>("RayCast2D");
 
-    raycast2D.CastTo = new Vector2(0,50);
+    raycast2D.TargetPosition = new Vector2(0,50);
 
     //the raycast only collides with the second layer so only the floors
     grounded = IsOnFloor();
     OnTile = raycast2D.IsColliding();
 
     //update player movement
-    if(Godot.Input.IsActionPressed("PlayerUp") && grounded)
+    if(Input.IsActionPressed("PlayerUp") && grounded)
     {
       velocity += new Vector2(0,jumpPower);
     }
-    if(Godot.Input.IsActionPressed("PlayerDown"))
+    if(Input.IsActionPressed("PlayerDown"))
     {
-      Position = new Vector2(Position.x, Position.y + 1);
+      Position = new Vector2(Position.X, Position.Y + 1);
     }
-    if(Godot.Input.IsActionPressed("PlayerRight"))
+    if(Input.IsActionPressed("PlayerRight"))
     {
-      velocity += new Vector2(horizontalMovementPower,0) * delta;
+      velocity += new Vector2(horizontalMovementPower,0) * (float)delta;
     }
-    if(Godot.Input.IsActionPressed("PlayerLeft"))
+    if(Input.IsActionPressed("PlayerLeft"))
     {
-      velocity += new Vector2(-horizontalMovementPower,0) * delta;
+      velocity += new Vector2(-horizontalMovementPower,0) * (float)delta;
     }
 
-    velocity.y += gravity * delta;
+    velocity.Y += gravity * (float)delta;
 
     
-    velocity = MoveAndSlide(velocity, new Vector2(0,-1)) * 0.95f;
+    // Use CharacterBody2D built-in Velocity with MoveAndSlide in Godot 4
+    Velocity = velocity;
+    MoveAndSlide();
+    velocity = Velocity * 0.95f;
     if(grounded)
     {
-      velocity.x *= 0.90f;
+      velocity.X *= 0.90f;
     }
 
 
   //if velocity x == 0 then dont change
-    if(velocity.x > 0)
+    if(velocity.X > 0)
     {
       animatedSprite.FlipH = false;
     }
-    else if(velocity.x < 0)
+    else if(velocity.X < 0)
     {
       animatedSprite.FlipH = true;
     }
@@ -87,7 +89,7 @@ public class Player : KinematicBody2D
     //idle - if grounded and slow
     if(grounded)
     {
-      if(velocity.x < idleEpsilon && velocity.x > -idleEpsilon)
+      if(velocity.X < idleEpsilon && velocity.X > -idleEpsilon)
       {
         animatedSprite.Play("Character Idle");
       }
@@ -99,7 +101,7 @@ public class Player : KinematicBody2D
     //if not grounded
     else if(!OnTile)
     {
-      if(velocity.y < idleEpsilon && velocity.y > -idleEpsilon)
+      if(velocity.Y < idleEpsilon && velocity.Y > -idleEpsilon)
       {
         animatedSprite.Play("Character Jump");
       }

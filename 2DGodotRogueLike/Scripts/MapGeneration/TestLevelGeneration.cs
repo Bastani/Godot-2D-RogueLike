@@ -1,9 +1,10 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
+using Material = Materials.Material;
 
-public class TestLevelGeneration : Node2D
+public partial class TestLevelGeneration : Node2D
 {
 
 #region Signals
@@ -121,16 +122,16 @@ public class TestLevelGeneration : Node2D
 
   float OctileDistanceCalc(Vector2 a, Vector2 b)
   {
-    Vector2 diff = new Vector2(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
+    Vector2 diff = new Vector2(Mathf.Abs(a.X - b.X), Mathf.Abs(a.Y - b.Y));
 
     //1.41421356237 is sqrt of 2
-    return (Mathf.Min(diff.x, diff.y) * 1.41421356237f) + Mathf.Max(diff.x, diff.y) - Math.Min(diff.x, diff.y);
+    return (Mathf.Min(diff.X, diff.Y) * 1.41421356237f) + Mathf.Max(diff.X, diff.Y) - Math.Min(diff.X, diff.Y);
   }
 
   float ManhattanDistanceCalc(Vector2 a, Vector2 b)
   {
     //1.41421356237 is sqrt of 2
-    return Mathf.Abs(a.x-b.x) + Math.Abs(a.y-b.y);
+    return Mathf.Abs(a.X-b.X) + Math.Abs(a.Y-b.Y);
   }
 
 
@@ -193,7 +194,7 @@ public class TestLevelGeneration : Node2D
     {
       for(int x = 0; x < width; ++x)
       {  
-        VisualizationMaps["Voronoi Overlay"].SetCell(x,y,voronoiPoints[x,y]);
+        VisualizationMaps["Voronoi Overlay"].SetCell(0, new Vector2I(x,y),voronoiPoints[x,y]);
       }
     }
 
@@ -220,7 +221,7 @@ public class TestLevelGeneration : Node2D
     {
       foreach (var item in pointList)
       {
-        VisualizationMaps["Room Overlay"].SetCell(item.Key, item.Value, currListValue % maxColors);
+        VisualizationMaps["Room Overlay"].SetCell(0, new Vector2I(item.Key, item.Value), currListValue % maxColors);
       }
       currListValue++;
     }
@@ -246,7 +247,7 @@ public class TestLevelGeneration : Node2D
   //Translates grid vec to center of vec in world pos
   public Vector2 MapPointToWorldPos(Vector2 pos)
   {
-    return pos * ForegroundMap.CellSize * ForegroundMap.Scale + (ForegroundMap.CellSize * ForegroundMap.Scale * 0.5f);
+    return pos * ForegroundMap.CellQuadrantSize * ForegroundMap.Scale + (ForegroundMap.CellQuadrantSize * ForegroundMap.Scale * 0.5f);
   }
 
   public void SpawnPlayerAtStartRoom(bool resetPlayerCharacter = false)
@@ -262,7 +263,7 @@ public class TestLevelGeneration : Node2D
           playerManager.topDownPlayer = null;
         }
 
-        PlayerTopDown newPlayer = playerObjectScene.Instance() as PlayerTopDown;
+        PlayerTopDown newPlayer = playerObjectScene.Instantiate() as PlayerTopDown;
         GetTree().Root.AddChild(newPlayer);
         playerManager.SetTopDownPlayer(ref newPlayer);
         
@@ -302,7 +303,7 @@ public class TestLevelGeneration : Node2D
       if(!tilesWithEnemies.Contains(rooms[roomToChoose][tileToChoose]))
       {
         //Spawn slime
-        CombatCharacter newSlime = slimeEnemyScene.Instance() as CombatCharacter;
+        CombatCharacter newSlime = slimeEnemyScene.Instantiate() as CombatCharacter;
         newSlime.GlobalPosition = MapPointToWorldPos(new Vector2(rooms[roomToChoose][tileToChoose].Key, rooms[roomToChoose][tileToChoose].Value));
         EnemiesNode.AddChild(newSlime);
         slimesAdded++;
@@ -331,7 +332,7 @@ public class TestLevelGeneration : Node2D
       if(!tilesWithForges.Contains(rooms[roomToChoose][tileToChoose]))
       {
         //Spawn slime
-        Interactable newForge = ForgeScene.Instance() as Interactable;
+        Interactable newForge = ForgeScene.Instantiate() as Interactable;
         newForge.GlobalPosition = MapPointToWorldPos(new Vector2(rooms[roomToChoose][tileToChoose].Key, rooms[roomToChoose][tileToChoose].Value)) + new Vector2(random.Next(-10,10), random.Next(-10,10));
         InteractablesNode.AddChild(newForge);
         forgesAdded++;
@@ -355,7 +356,7 @@ public class TestLevelGeneration : Node2D
       }
 
       //Spawn slime
-      DownwardLadder newLadder = endOfLevelLadderScene.Instance() as DownwardLadder;
+      DownwardLadder newLadder = endOfLevelLadderScene.Instantiate() as DownwardLadder;
       newLadder.GlobalPosition = MapPointToWorldPos(new Vector2(roomToUse.Key, roomToUse.Value)) + new Vector2(random.Next(-10,10), random.Next(-10,10));
       InteractablesNode.AddChild(newLadder);
       //Select a tile with the highest adjacency inside of the room
@@ -366,11 +367,11 @@ public class TestLevelGeneration : Node2D
 
   public void SpawnOreChunkAt(Vector2 pos)
   {
-    OreWorldObject newObj = oreWorldObjectScene.Instance() as OreWorldObject;
+    OreWorldObject newObj = oreWorldObjectScene.Instantiate() as OreWorldObject;
 
     //Spawn ore chunk at item.Key * scale + offset (0,0 is upper left corner) so they are centered
-    newObj.Position = pos * ForegroundMap.CellSize * ForegroundMap.Scale + (ForegroundMap.CellSize * ForegroundMap.Scale * 0.5f);
-    newObj.material = (Materials.Material)random.Next(0,6);
+    newObj.Position = pos * ForegroundMap.CellQuadrantSize * ForegroundMap.Scale + (ForegroundMap.CellQuadrantSize * ForegroundMap.Scale * 0.5f);
+    newObj.material = (Material)random.Next(0,6);
     newObj.amountInOre = random.Next(1,6);
     newObj.timeToMine = random.Next(2,4);
 
@@ -432,11 +433,11 @@ public class TestLevelGeneration : Node2D
 
           if(result == AStar.PathState.DoesNotExist)
           {
-            Console.WriteLine("Path Does not exists between " + startRoom[0].ToString() + " and " + endRoom[0].ToString());
+            Console.WriteLine("Path Does not exists between " + startRoom[0] + " and " + endRoom[0]);
           }
           else if (result == AStar.PathState.Found)
           {
-            Console.WriteLine("Path Found between " + startRoom[0].ToString() + " and " + endRoom[0].ToString());
+            Console.WriteLine("Path Found between " + startRoom[0] + " and " + endRoom[0]);
           }
         }
         currEndRoom++;
@@ -472,7 +473,7 @@ public class TestLevelGeneration : Node2D
       }
     }
 
-    Console.WriteLine("Farthest apart rooms is Room " + longestStartRoom.ToString() + " and Room " + longestEndRoom.ToString());
+    Console.WriteLine("Farthest apart rooms is Room " + longestStartRoom + " and Room " + longestEndRoom);
 
     //Clear AStar vis map
     VisualizationMaps["AStar Overlay"].Clear();
@@ -480,12 +481,12 @@ public class TestLevelGeneration : Node2D
     //Draw rooms that are far enough 
     foreach (var item in potentialEndRooms)
     {
-      VisualizationMaps["AStar Overlay"].SetCell(rooms[item][0].Key,rooms[item][0].Value, 10);
+      VisualizationMaps["AStar Overlay"].SetCell(0, new Vector2I(rooms[item][0].Key,rooms[item][0].Value), 10);
     }
 
     //Draw start and abs farthest
-    VisualizationMaps["AStar Overlay"].SetCell(rooms[longestStartRoom][0].Key,rooms[longestStartRoom][0].Value, 4);
-    VisualizationMaps["AStar Overlay"].SetCell(rooms[longestEndRoom][0].Key,rooms[longestEndRoom][0].Value, 11);
+    VisualizationMaps["AStar Overlay"].SetCell(0, new Vector2I(rooms[longestStartRoom][0].Key,rooms[longestStartRoom][0].Value), 4);
+    VisualizationMaps["AStar Overlay"].SetCell(0, new Vector2I(rooms[longestEndRoom][0].Key,rooms[longestEndRoom][0].Value), 11);
 
     startRoom = longestStartRoom;
     endRoom = longestEndRoom;
@@ -625,14 +626,14 @@ public class TestLevelGeneration : Node2D
         {
           continue;
         }
-        ForegroundMap.SetCell(x, y, WallTile);
-        BackgroundMap.SetCell(x, y, BackgroundMapGroundTile);
+        ForegroundMap.SetCell(0, new Vector2I(x, y), WallTile);
+        BackgroundMap.SetCell(0, new Vector2I(x, y), BackgroundMapGroundTile);
       }
     }
 
-    //update bitmask
-    ForegroundMap.UpdateBitmaskRegion(new Vector2(-borderSize,-borderSize), new Vector2(width + borderSize, height + borderSize));
-    ForegroundMap.UpdateDirtyQuadrants();
+    // //update bitmask
+    // ForegroundMap.UpdateBitmaskRegion(new Vector2(-borderSize,-borderSize), new Vector2(width + borderSize, height + borderSize));
+    // ForegroundMap.UpdateDirtyQuadrants();
   }
 
 
@@ -772,14 +773,14 @@ public class TestLevelGeneration : Node2D
   public AStar.AStarPather AStarPather = new AStar.AStarPather();
   //Flood Fill Vars
   int numDirectedGraphFromFloodFillIter = 1;
-  bool realtimeFloodFill = false;
+  bool realtimeFloodFill;
 
   //KMeans Vars
   int numKMeansClusters = 10;
   int iterKMeans = 100;
 
   //AStar Vars
-  public bool realtimeAStar = false;
+  public bool realtimeAStar;
   int realtimeAStarIter = 1;
 
   int [,] voronoiPoints;
@@ -814,10 +815,10 @@ public class TestLevelGeneration : Node2D
   //0,2,3 for extra quadrants
 
   //declare Foreground and Background map variables
-  public Godot.TileMap ForegroundMap;
-  public Godot.TileMap BackgroundMap;
+  public TileMap ForegroundMap;
+  public TileMap BackgroundMap;
 
-  public Dictionary<string,Godot.TileMap> VisualizationMaps; 
+  public Dictionary<string,TileMap> VisualizationMaps;
 
   //range of 0 to 100 with step range of 5
   [Export(PropertyHint.Range,"0,100,1")]
@@ -860,7 +861,7 @@ public class TestLevelGeneration : Node2D
   public Vector2 tileMapSize;
 
   [Export]
-  public bool GenerateNewLevelOnStartup = false;
+  public bool GenerateNewLevelOnStartup;
 
   public int width { get; private set; }
   public int height { get; private set; }
@@ -887,7 +888,7 @@ public class TestLevelGeneration : Node2D
   //mapFinalScale of 1 should have a mapRoomMinDist of 2
   //mapFinalScale of 2 should have a mapRoomMinDist of 5
 
-  bool ranFirstTimeInit = false;
+  bool ranFirstTimeInit;
 
   bool setCameraPositionToPlayer = true;
 
@@ -1043,9 +1044,9 @@ public class TestLevelGeneration : Node2D
   }
   
   //Fixed
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
-    if(realtimeFloodFill == true)
+    if(realtimeFloodFill)
     {
       for (int i = 0; i < numDirectedGraphFromFloodFillIter; i++)
       {
@@ -1062,7 +1063,7 @@ public class TestLevelGeneration : Node2D
       }
     }
 
-    if(realtimeAStar == true && debugManager.AStarState == AStar.PathState.Searching)
+    if(realtimeAStar && debugManager.AStarState == AStar.PathState.Searching)
     {
       for (int i = 0; i < realtimeAStarIter; i++)
       {
@@ -1077,10 +1078,9 @@ public class TestLevelGeneration : Node2D
   //Draw parent tree with simple parent follow set to the tile to show the path to the parent
   public void DrawParentTree(ChokePointFinder.CPFNode currNode)
   {
-    VisualizationMaps["Directed Graph Overlay"].SetCell((int)currNode.pos.x , (int)currNode.pos.y , 10);
+    VisualizationMaps["Directed Graph Overlay"].SetCell(0,new Vector2I((int)currNode.pos.X , (int)currNode.pos.Y) , 10);
     if(currNode.parent == null)
     {
-      return;
     }
     else
     {
@@ -1124,7 +1124,7 @@ public class TestLevelGeneration : Node2D
     VisualizationMaps["AStar Overlay"] = GetNode("AStar Overlay") as TileMap;
     VisualizationMaps["Voronoi Overlay"] = GetNode("Voronoi Overlay") as TileMap;
 
-    MapGenColorListNode = GetTree().Root.FindNode("MapGenColorList/VBoxContainer2");
+    MapGenColorListNode = GetTree().Root.GetNode("MapGenColorList/VBoxContainer2");
 
     //Set the CCLGen Adjacency Overlay map to output adjacency data to
     CCLGen.SetVisualizationMap(ref VisualizationMaps, "Adjacency Overlay");
@@ -1135,8 +1135,8 @@ public class TestLevelGeneration : Node2D
 
 
     //use initial map as stuff
-    width = (int)(ForegroundMap.GetUsedRect().Size.x);
-    height = (int)(ForegroundMap.GetUsedRect().Size.y);
+    width = (int)(ForegroundMap.GetUsedRect().Size.X);
+    height = (int)(ForegroundMap.GetUsedRect().Size.Y);
 
     terrainMap = new int [width,height];
 
@@ -1145,7 +1145,7 @@ public class TestLevelGeneration : Node2D
     {
       for(int j = 0; j <= 1; ++j)  
       {
-        terrainMap[i,j] = ForegroundMap.GetCell(i,j);
+        terrainMap[i,j] = ForegroundMap.GetCellSourceId(0, new Vector2I(i,j));
       }
     }
 
@@ -1159,10 +1159,10 @@ public class TestLevelGeneration : Node2D
   }
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _Process(float delta)
+  public override void _Process(double delta)
   {
     //Delay init until process step, need a more granular way to setup and show dependencies of internal systems
-    if(ranFirstTimeInit == false)
+    if(!ranFirstTimeInit)
     {
 
       if(GenerateNewLevelOnStartup)
@@ -1230,8 +1230,8 @@ public class TestLevelGeneration : Node2D
 
     if(newMap)
     {
-      width = (int) tileMapSize.x;
-      height = (int) tileMapSize.y;
+      width = (int) tileMapSize.X;
+      height = (int) tileMapSize.Y;
       ClearMap();
       terrainMap = new int[width, height];
       initPositions();
@@ -1326,16 +1326,16 @@ public class TestLevelGeneration : Node2D
         {
           //range of -x to x amd -y to y to center the tile map;
           //set to the top tile
-          ForegroundMap.SetCell(x , y , WallTile);
+          ForegroundMap.SetCell(0, new Vector2I(x,y) , WallTile);
         }
         else  //Bottom Tile = 0 = Grass Wall
         {
-          ForegroundMap.SetCell(x , y , NoWallTile);
+          ForegroundMap.SetCell(0, new Vector2I(x,y) , NoWallTile);
 
         }
 
         //set the background to all bottom tile????
-        BackgroundMap.SetCell(x , y , BackgroundMapGroundTile);
+        BackgroundMap.SetCell(0, new Vector2I(x,y) , BackgroundMapGroundTile);
       }
     }
 
@@ -1344,10 +1344,10 @@ public class TestLevelGeneration : Node2D
     //ForegroundMap.SetCell( width / 2, -(width - 1)  , 0);
 
 
-    //update bitmask for auto tile
-    ForegroundMap.UpdateBitmaskRegion(new Vector2(0, 0), new Vector2(width, height));
-
-    ForegroundMap.UpdateDirtyQuadrants();
+    // //update bitmask for auto tile
+    // ForegroundMap.UpdateBitmaskRegion(new Vector2(0, 0), new Vector2(width, height));
+    //
+    // ForegroundMap.UpdateDirtyQuadrants();
     //ForegroundMap.SetCell(width / 2, width / 2,TestTile);
   }
 
@@ -1369,16 +1369,15 @@ public class TestLevelGeneration : Node2D
         foreach (Vector2 tilePos in neighborsToCheckSingle)
         {
           //break on out of bounds
-          if(x + tilePos.x < 0 || x + tilePos.x >= width || y + tilePos.y < 0 || y + tilePos.y >= height)
+          if(x + tilePos.X < 0 || x + tilePos.X >= width || y + tilePos.Y < 0 || y + tilePos.Y >= height)
           {
             //count the border as alive so + 1
             numNeighbors++;
-            continue;
           }
           else  //if not out of bounds
           {
             //neighbor adds the value of either dead or alive neighbor
-            numNeighbors += oldTerrainMap[x + (int)tilePos.x, y + (int)tilePos.y];
+            numNeighbors += oldTerrainMap[x + (int)tilePos.X, y + (int)tilePos.Y];
           }
         }  
 
@@ -1440,8 +1439,8 @@ public class TestLevelGeneration : Node2D
         foreach (var item in set)
         {
           //if wall
-          int posX = largestItem.Key + (int)item.x;
-          int posY = largestItem.Value + (int)item.y;
+          int posX = largestItem.Key + (int)item.X;
+          int posY = largestItem.Value + (int)item.Y;
 
           //Make sure coordinates are inside of the terrain
           posX = Mathf.Max(0,Mathf.Min(width - 1, posX));
@@ -1458,7 +1457,7 @@ public class TestLevelGeneration : Node2D
         if(foundWall)
           break;
       }
-      if(foundWall == false)
+      if(!foundWall)
       {
         Console.WriteLine("Did not find wall in radius 50");
         adjacencyMap[new KeyValuePair<int, int>(largestItem.Key,largestItem.Value)] = int.MaxValue;
@@ -1470,14 +1469,14 @@ public class TestLevelGeneration : Node2D
     //  for(int y = 0; y < height; ++y)
     //  {
     //    //Set cell to -1 deletes it
-    //    VisualizationMaps["Adjacency Overlay"].SetCell(x , y , -1);
+    //    VisualizationMaps["Adjacency Overlay"].SetCell(0, new Vector2I(x,y) , -1);
     //  }
     //}
     VisualizationMaps["Adjacency Overlay"].Clear();
 
     foreach (var item in largestSet)
     {
-      VisualizationMaps["Adjacency Overlay"].SetCell(item.Key , item.Value , (adjacencyMap[item] * 3) % maxColors);
+      VisualizationMaps["Adjacency Overlay"].SetCell(0, new Vector2I(item.Key , item.Value) , (adjacencyMap[item] * 3) % maxColors);
     }
   }
 }

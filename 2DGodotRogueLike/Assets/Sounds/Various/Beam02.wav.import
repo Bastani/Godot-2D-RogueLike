@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Beam02.wav-87ff3d0623c86af6c87e195f02b6585f.sample"
+type="AudioStreamWAV"
+uid="uid://brae0bjstrwxq"
+path="res://.godot/imported/Beam02.wav-87ff3d0623c86af6c87e195f02b6585f.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Beam02.wav"
-dest_files=[ "res://.import/Beam02.wav-87ff3d0623c86af6c87e195f02b6585f.sample" ]
+dest_files=["res://.godot/imported/Beam02.wav-87ff3d0623c86af6c87e195f02b6585f.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

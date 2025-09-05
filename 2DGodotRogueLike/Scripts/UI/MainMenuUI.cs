@@ -1,7 +1,6 @@
 using Godot;
-using System;
 
-public class MainMenuUI : Control
+public partial class MainMenuUI : Control
 {
   PackedScene generatedLevelScene = (PackedScene)ResourceLoader.Load("res://Scenes/Levels/Town.tscn");
   PlayerManager playerManager;

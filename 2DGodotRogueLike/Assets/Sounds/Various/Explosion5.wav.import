@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Explosion5.wav-2c20f63a7ac0e874d28b31f962ed3258.sample"
+type="AudioStreamWAV"
+uid="uid://b2tekpyw433ne"
+path="res://.godot/imported/Explosion5.wav-2c20f63a7ac0e874d28b31f962ed3258.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Explosion5.wav"
-dest_files=[ "res://.import/Explosion5.wav-2c20f63a7ac0e874d28b31f962ed3258.sample" ]
+dest_files=["res://.godot/imported/Explosion5.wav-2c20f63a7ac0e874d28b31f962ed3258.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

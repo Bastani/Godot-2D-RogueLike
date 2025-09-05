@@ -1,8 +1,9 @@
-using Godot;
 using System;
 using System.Collections.Generic;
+using Godot;
+using Parts;
 
-public class PlayerTopDown : CombatCharacter
+public partial class PlayerTopDown : CombatCharacter
 {
   // Declare member variables here. Examples:
   // private int a = 2;
@@ -26,12 +27,12 @@ public class PlayerTopDown : CombatCharacter
   bool grounded = true;
 
 	[Export]
-  bool attacking = false;
+  bool attacking;
 
-	bool currentlyInteracting = false;
+	bool currentlyInteracting;
 	
 	//Bool to stop player movement if holding down/spamming the attack button as the anim player is updated after the player so the player can move slightly between each and don't want that
-	bool attackingThisFrame = false;
+	bool attackingThisFrame;
 	
 	bool finishWinding = true;
 	Timer windTimer;
@@ -53,13 +54,13 @@ public class PlayerTopDown : CombatCharacter
   }
 
   //todo Doesnt quite work, need better way to detect if above fallable block
-  bool OnTile = false;
+  bool OnTile;
   // Called when the node enters the scene tree for the first time.
 
 	Area2D playerArea;
 	AnimationPlayer weaponAnimPlayer;
 	RayCast2D raycast2D;
-	Sprite weaponSprite;
+	Sprite2D weaponSprite;
 	HealthBar healthBar;
 
 	public InventoryUI playerInventoryUI;
@@ -114,7 +115,7 @@ public class PlayerTopDown : CombatCharacter
     //this.QueueFree();
   }
 
-	public void SetCurrentWeapon(Parts.ConstructedWeapon _weapon)
+	public void SetCurrentWeapon(ConstructedWeapon _weapon)
 	{
 		weapon = _weapon.stats;
 		
@@ -130,14 +131,14 @@ public class PlayerTopDown : CombatCharacter
 
 	public HashSet<Interactable> interactablesInRange = new HashSet<Interactable>();
 
-	public Interactable closestInteractable = null;
+	public Interactable closestInteractable;
 
 	//save incase the player walks away somehow
-	public Interactable currentlyInteractingWith = null;
+	public Interactable currentlyInteractingWith;
 	
 
 	//TODO change to crafted/selected weapon
-	public Parts.PartStats weapon = new Parts.PartStats();
+	public PartStats weapon = new PartStats();
 
 	float playerBaseKnockBack = 100.0f;
 	float playerWeaponKnockback = 1.0f;
@@ -153,10 +154,10 @@ public class PlayerTopDown : CombatCharacter
 		characterType = CharacterType.Player;
 		windTimer = GetNode<Timer>("WindTimer");
 		playerArea = GetNode<Area2D>("PlayerInteractionArea");
-		animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
+		animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite");
 		weaponAnimPlayer = GetNode<AnimationPlayer>("WeaponSprite/WeaponAnimPlayer");
 		raycast2D = GetNode<RayCast2D>("RayCast2D");
-		weaponSprite = GetNode<Sprite>("WeaponSprite");
+		weaponSprite = GetNode<Sprite2D>("WeaponSprite");
 
 		Node camera = GetNode<PlayerManager>("/root/PlayerManagerSingletonNode").playerCamera;
 		
@@ -188,7 +189,7 @@ public class PlayerTopDown : CombatCharacter
 
 	void CollidingWithInvObject(InventoryPickupWorldObject inv)
 	{
-		Console.WriteLine("Overlapping Inventory Object" + inv.ToString());
+		Console.WriteLine("Overlapping Inventory Object" + inv);
 		//Add to relevent material
 		if(inv.isMaterial)
 		{
@@ -211,7 +212,6 @@ public class PlayerTopDown : CombatCharacter
 		if(inv != null)
 		{
 			CollidingWithInvObject(inv);
-			return;
 		}
 
 	}
@@ -257,8 +257,8 @@ public class PlayerTopDown : CombatCharacter
 
   public override void _Draw()
   {
-	  this.DrawLine(Position,Position + velocity,Color.Color8(1,0,0,1));
-	  this.DrawLine(Position,Position + new Vector2(0,50),Color.Color8(0,1,0,1));
+	  DrawLine(Position, Position + velocity, new Color(1, 0, 0, 1));
+	  DrawLine(Position, Position + new Vector2(0, 50), new Color(0, 1, 0, 1));
   }
 
 	public void onTimerWindTimeOut()
@@ -272,7 +272,10 @@ public class PlayerTopDown : CombatCharacter
 		//pause animation
 		//wait for timer to callback continue animation
 		weaponAnimPlayer.Stop();
-		windTimer.WaitTime = Mathf.Max(weaponWindCurve.Interpolate(weapon.attackWindUp/1000.0f),0.001f);
+		{
+			float sample = weaponWindCurve.Sample(weapon.attackWindUp/1000.0f);
+			windTimer.WaitTime = System.Math.Max((double)sample, 0.001);
+		}
 		nextAnim = "SlashAttack";
 		windTimer.Start();
 		finishWinding = false;
@@ -281,14 +284,17 @@ public class PlayerTopDown : CombatCharacter
 	public void EndedAttacking()
 	{
 		weaponAnimPlayer.Stop();
-		windTimer.WaitTime = Mathf.Max(weaponWindCurve.Interpolate(weapon.attackWindDown/1000.0f),0.001f);
+		{
+			float sample = weaponWindCurve.Sample(weapon.attackWindDown/1000.0f);
+			windTimer.WaitTime = System.Math.Max((double)sample, 0.001);
+		}
 		nextAnim = "SlashWindDown";
 		windTimer.Start();
 		finishWinding = false;
 	}
 
   //  // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
 		if(firstTimeInit)
 		{
@@ -348,39 +354,39 @@ public class PlayerTopDown : CombatCharacter
 
 		closestInteractable = closest;
 
-		raycast2D.CastTo = new Vector2(0,50);
+		raycast2D.TargetPosition = new Vector2(0,50);
 
 		//the raycast only collides with the second layer so only the floors
 		OnTile = raycast2D.IsColliding();
 
 		//update player movement
-		if(Godot.Input.IsActionPressed("PlayerUp"))
+		if(Input.IsActionPressed("PlayerUp"))
 		{
 			currentFacing = FacingDir.Up;
-			movingDirection.y -= 1;
+			movingDirection.Y -= 1;
 			//velocity += new Vector2(0,-verticalMovementPower) * delta;
 		}
-		if(Godot.Input.IsActionPressed("PlayerDown"))
+		if(Input.IsActionPressed("PlayerDown"))
 		{
 			currentFacing = FacingDir.Down;
-			movingDirection.y += 1;
+			movingDirection.Y += 1;
 			//velocity += new Vector2(0,verticalMovementPower) * delta;
 		}
-		if(Godot.Input.IsActionPressed("PlayerRight"))
+		if(Input.IsActionPressed("PlayerRight"))
 		{
 			//Prioritize left and right attacks more than up and down
 			currentFacing = FacingDir.Right;
-			movingDirection.x += 1;
+			movingDirection.X += 1;
 			//velocity += new Vector2(horizontalMovementPower,0) * delta;
 		}
-		if(Godot.Input.IsActionPressed("PlayerLeft"))
+		if(Input.IsActionPressed("PlayerLeft"))
 		{
 			currentFacing = FacingDir.Left;
-			movingDirection.x -= 1;
+			movingDirection.X -= 1;
 			//velocity += new Vector2(-horizontalMovementPower,0) * delta;
 		}
 
-		if(Godot.Input.IsActionJustPressed("PlayerInteract"))
+		if(Input.IsActionJustPressed("PlayerInteract"))
 		{
 			if(closestInteractable != null)
 			{
@@ -389,7 +395,7 @@ public class PlayerTopDown : CombatCharacter
 			}
 		}
 
-		if(Godot.Input.IsActionPressed("PlayerInteract"))
+		if(Input.IsActionPressed("PlayerInteract"))
 		{
 			//Deal with the cast that the object we were interacting with is destroyed (i.e. ore mined) then find new one
 			if(closestInteractable != null && currentlyInteractingWith == null)
@@ -399,22 +405,22 @@ public class PlayerTopDown : CombatCharacter
 			}
 		}
 
-		if(Godot.Input.IsActionJustReleased("PlayerInteract"))
+		if(Input.IsActionJustReleased("PlayerInteract"))
 		{
 			if(currentlyInteractingWith != null)
 			{
 				currentlyInteractingWith.EndInteract();
-				if(currentlyInteractingWith.playerInteracting == false)
+				if(!currentlyInteractingWith.playerInteracting)
 					currentlyInteractingWith = null;
 			}
 		}
 
-		if(Godot.Input.IsActionJustReleased("PlayerInventory") && currentlySelectedUI == CurrentlySelectedUI.InventoryScreen)
+		if(Input.IsActionJustReleased("PlayerInventory") && currentlySelectedUI == CurrentlySelectedUI.InventoryScreen)
 		{
 			//Pause stuff somehow
 			currentlySelectedUI = CurrentlySelectedUI.None;
 		}
-		else if(Godot.Input.IsActionJustReleased("PlayerInventory") && currentlySelectedUI == CurrentlySelectedUI.None)
+		else if(Input.IsActionJustReleased("PlayerInventory") && currentlySelectedUI == CurrentlySelectedUI.None)
 		{
 			//Pause stuff somehow
 			currentlySelectedUI = CurrentlySelectedUI.InventoryScreen;
@@ -439,7 +445,7 @@ public class PlayerTopDown : CombatCharacter
 		//Attacking
 		
 		//Allow the player to skip the last few frames to attack quickly again and player is not in a UI
-		if(Godot.Input.IsActionPressed("PlayerAttack") && attacking == false && currentlySelectedUI == CurrentlySelectedUI.None)
+		if(Input.IsActionPressed("PlayerAttack") && !attacking && currentlySelectedUI == CurrentlySelectedUI.None)
 		{
 
 			//if currently playing then reset the animation cancel the rest of the anim
@@ -464,28 +470,28 @@ public class PlayerTopDown : CombatCharacter
 			movingDirection = new Vector2(0,0);
 		}
 
-		velocity += movingDirection.Normalized() * movementSpeed * movespeedScalar * delta;  
+		velocity += movingDirection.Normalized() * (movementSpeed * movespeedScalar * (float)delta);  
 
 		//if velocity x == 0 then dont change
-		if(velocity.x > 0)
+		if(velocity.X > 0)
 		{
 			animatedSprite.FlipH = false;
 		}
-		else if(velocity.x < 0)
+		else if(velocity.X < 0)
 		{
 			animatedSprite.FlipH = true;
 		}
 
 
-		//velocity.y += gravity * delta;
+		//velocity.Y += gravity * delta;
 		
 		//idle - if grounded and slow
 		if(grounded && !attacking)
 		{
-			if((Mathf.Abs(velocity.x) > idleEpsilon || Mathf.Abs(velocity.y) > idleEpsilon))
+			if((Mathf.Abs(velocity.X) > idleEpsilon || Mathf.Abs(velocity.Y) > idleEpsilon))
 			{
 				//If more X than Y
-				if(Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
+				if(Mathf.Abs(velocity.X) > Mathf.Abs(velocity.Y))
 				{
 					animatedSprite.Play("Sideways_Walking");
 				}
@@ -497,7 +503,7 @@ public class PlayerTopDown : CombatCharacter
 			}
 			else
 			{
-				if(Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
+				if(Mathf.Abs(velocity.X) > Mathf.Abs(velocity.Y))
 				{
 					animatedSprite.Play("Sideways_Idle");
 				}
@@ -511,9 +517,9 @@ public class PlayerTopDown : CombatCharacter
 
 		
 		//Player Dash, only resolve if can move
-		if(Godot.Input.IsActionJustPressed("PlayerMovementAbility") && velocity.LengthSquared() != 0)
+		if(Input.IsActionJustPressed("PlayerMovementAbility") && velocity.LengthSquared() != 0)
 		{
-			velocity = dashSpeed * movementSpeed * movespeedScalar * delta * movingDirection.Normalized();
+			velocity = movingDirection.Normalized() * (dashSpeed * movementSpeed * movespeedScalar * (float)delta);
 
 			rollInvincibilityTimeLeft = rollMaxInvincibilityTimeLeft;
 			//Play dash animation
@@ -524,7 +530,9 @@ public class PlayerTopDown : CombatCharacter
 		
 
 		//Update velocity last
-		velocity = MoveAndSlide(velocity) * 0.6f;
+		Velocity = velocity;
+		MoveAndSlide();
+		velocity = Velocity * 0.6f;
 		attackingThisFrame = false;
   }
 }

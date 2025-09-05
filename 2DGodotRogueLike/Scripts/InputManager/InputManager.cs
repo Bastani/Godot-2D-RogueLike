@@ -1,11 +1,10 @@
-using Godot;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using Godot;
 
 //Get the input manager with 
 //inputManager =  GetNode<InputManager>("/root/InputManagerSingletonNode");
-public class InputManager : Node
+public partial class InputManager : Node
 {
   public enum KeyState
   {
@@ -15,18 +14,18 @@ public class InputManager : Node
     None      //no state
   }
 
-  Dictionary<KeyList, KeyState> keys = new Dictionary<KeyList, KeyState>();
+  Dictionary<Key, KeyState> keys = new Dictionary<Key, KeyState>();
 
   public override void _Ready()
   {
     //For each keys initialize to none
-    foreach (KeyList item in Enum.GetValues(typeof(KeyList)))
+    foreach (Key item in Enum.GetValues(typeof(Key)))
     {
       keys[item] = KeyState.None;
     }
   }
 
-  public KeyState GetKeyState(KeyList key)
+  public KeyState GetKeyState(Key key)
   {
     return keys[key];
   }
@@ -34,25 +33,25 @@ public class InputManager : Node
 
 
   //pressed this frame
-  public bool IsKeyPressed(KeyList key)
+  public bool IsKeyPressed(Key key)
   {
     return keys[key] == KeyState.Pressed;
   }
 
   //pressed this frame
-  public bool IsKeyReleased(KeyList key)
+  public bool IsKeyReleased(Key key)
   {
     return keys[key] == KeyState.Released;
   }
   
   //Down = pressed this frame or held down
-  public bool IsKeyDown(KeyList key)
+  public bool IsKeyDown(Key key)
   {
     return keys[key] == KeyState.Pressed || keys[key] == KeyState.Held;
   }
   
   //If the key is held down
-  public bool IsKeyHeld(KeyList key)
+  public bool IsKeyHeld(Key key)
   {
     return keys[key] == KeyState.Held;
   }
@@ -64,27 +63,27 @@ public class InputManager : Node
     {
       if(eventKey.Pressed)
       {
-        if(keys[(Godot.KeyList)eventKey.Scancode] == KeyState.None)
-          keys[(Godot.KeyList)eventKey.Scancode] = KeyState.Pressed;
+        if(keys[eventKey.PhysicalKeycode] == KeyState.None)
+          keys[eventKey.PhysicalKeycode] = KeyState.Pressed;
       }
       else if(eventKey.Echo)
       {
-        if(keys[(Godot.KeyList)eventKey.Scancode] == KeyState.Pressed)
-          keys[(Godot.KeyList)eventKey.Scancode] = KeyState.Held;
+        if(keys[eventKey.PhysicalKeycode] == KeyState.Pressed)
+          keys[eventKey.PhysicalKeycode] = KeyState.Held;
       }
-      else if(eventKey.Pressed == false && eventKey.Echo == false)  //key not pressed this frame
+      else if(!eventKey.Pressed && !eventKey.Echo)  //key not pressed this frame
       {
-        if(keys[(Godot.KeyList)eventKey.Scancode] == KeyState.Pressed || keys[(Godot.KeyList)eventKey.Scancode] == KeyState.Held)
-          keys[(Godot.KeyList)eventKey.Scancode] = KeyState.Released;
+        if(keys[eventKey.PhysicalKeycode] == KeyState.Pressed || keys[eventKey.PhysicalKeycode] == KeyState.Held)
+          keys[eventKey.PhysicalKeycode] = KeyState.Released;
 
         //Reset the key
-        if(keys[(Godot.KeyList)eventKey.Scancode] == KeyState.Released)
-          keys[(Godot.KeyList)eventKey.Scancode] = KeyState.None;
+        if(keys[eventKey.PhysicalKeycode] == KeyState.Released)
+          keys[eventKey.PhysicalKeycode] = KeyState.None;
       }
     }
   }
 
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
 
   }

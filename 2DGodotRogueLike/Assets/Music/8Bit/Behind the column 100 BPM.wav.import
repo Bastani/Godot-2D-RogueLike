@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Behind the column 100 BPM.wav-71ac6512b215cb59ea1b4a857b2f33f4.sample"
+type="AudioStreamWAV"
+uid="uid://dtsqeyp6042sq"
+path="res://.godot/imported/Behind the column 100 BPM.wav-71ac6512b215cb59ea1b4a857b2f33f4.sample"
 
 [deps]
 
 source_file="res://Assets/Music/8Bit/Behind the column 100 BPM.wav"
-dest_files=[ "res://.import/Behind the column 100 BPM.wav-71ac6512b215cb59ea1b4a857b2f33f4.sample" ]
+dest_files=["res://.godot/imported/Behind the column 100 BPM.wav-71ac6512b215cb59ea1b4a857b2f33f4.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

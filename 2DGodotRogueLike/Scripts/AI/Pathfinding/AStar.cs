@@ -1,7 +1,7 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Godot;
 
 
 //General AStar stuff
@@ -20,21 +20,21 @@ public class AStar
   public class AStarNode
   {
     public Vector2 pos = new Vector2(0,0);
-    public AStarNode parent = null;
+    public AStarNode parent;
     public NodeState state = NodeState.NotChecked;
 
     public void UpdateHeuristic(Vector2 goal)
     {
-      Vector2 diff = new Vector2(Mathf.Abs(goal.x - pos.x), Mathf.Abs(goal.y - pos.y));
+      Vector2 diff = new Vector2(Mathf.Abs(goal.X - pos.X), Mathf.Abs(goal.Y - pos.Y));
 
-      //1.41421356237 is sqrt of 2
-      heuristic = (Mathf.Min(diff.x, diff.y) * 1.41421356237f) + Mathf.Max(diff.x, diff.y) - Math.Min(diff.x, diff.y);
+      // 1.41421356237 is sqrt(2). Use consistent float ops.
+      heuristic = (Mathf.Min(diff.X, diff.Y) * 1.41421356237f) + Mathf.Max(diff.X, diff.Y) - Math.Min(diff.X, diff.Y);
     }
 
     //Doing all nodes weighted the same, will potentially have a dict of nodes to their weights if later add different weight nodes
     public static float weight = 1;
-    public float givenCost = 0;
-    public float heuristic {get; private set;} = 0;
+    public float givenCost;
+    public float heuristic {get; private set;}
   }
 
   public class AStarNodeComparer : Comparer<AStarNode>
@@ -48,16 +48,18 @@ public class AStar
       {
         return totalCostCompare;
       }
-      else if(x.pos.x.CompareTo(y.pos.x) != 0)
+
+      if(x.pos.X.CompareTo(y.pos.X) != 0)
       {
-        return x.pos.x.CompareTo(y.pos.x);
+        return x.pos.X.CompareTo(y.pos.X);
       }
-      else if(x.pos.y.CompareTo(y.pos.y) != 0)
+
+      if(x.pos.Y.CompareTo(y.pos.Y) != 0)
       {
-        return x.pos.y.CompareTo(y.pos.y);
+        return x.pos.Y.CompareTo(y.pos.Y);
       }
-      else
-        return 0;
+
+      return 0;
     }
   }
 
@@ -95,11 +97,11 @@ public class AStar
     //Accessors for the node map
     public AStarNode GetNodeAt(Vector2 pos)
     {
-      return nodeMap[(int)pos.x, (int)pos.y];
+      return nodeMap[(int)pos.X, (int)pos.Y];
     }
     public void SetNodeAt(Vector2 pos, AStarNode newNode)
     {
-      nodeMap[(int)pos.x, (int)pos.y] = newNode;
+      nodeMap[(int)pos.X, (int)pos.Y] = newNode;
     }
   }
   public enum PathState
@@ -120,10 +122,10 @@ public class AStar
     public AStarMap map {get; private set;}
     public List<Vector2> path {get; private set;}
 
-    Godot.TileMap AStarVisMap = new TileMap();
+    TileMap AStarVisMap = new TileMap();
 
 
-    public void SetAStarVisualizationMap(ref Dictionary<string,Godot.TileMap> _mapIDVisualization, string map)
+    public void SetAStarVisualizationMap(ref Dictionary<string,TileMap> _mapIDVisualization, string map)
     {
       AStarVisMap = _mapIDVisualization[map];
     }
@@ -134,33 +136,33 @@ public class AStar
       //Reset map
       AStarVisMap.Clear();
 
-      if(state == AStar.PathState.Searching)
+      if(state == PathState.Searching)
       {
         for (int i = 0; i < map.width; i++)
         {
           for (int j = 0; j < map.height; j++)
           {
-            if(map.GetNodeAt(new Vector2(i,j)).state == AStar.NodeState.ClosedList)
+            if(map.GetNodeAt(new Vector2(i,j)).state == NodeState.ClosedList)
             {
-              AStarVisMap.SetCell(i,j, 10);
+              AStarVisMap.SetCell(0, new Vector2I(i,j), 10);
             }
-            else if(map.GetNodeAt(new Vector2(i,j)).state == AStar.NodeState.OpenList)
+            else if(map.GetNodeAt(new Vector2(i,j)).state == NodeState.OpenList)
             {
-              AStarVisMap.SetCell(i,j, 9);
+              AStarVisMap.SetCell(0, new Vector2I(i,j), 9);
             }
           }
         }
       }
-      else if (state == AStar.PathState.Found)
+      else if (state == PathState.Found)
       {
         foreach (var item in path)
         {
-          AStarVisMap.SetCell((int)item.x,(int)item.y, 10);      
+          AStarVisMap.SetCell(0, (Vector2I)item, 10);
         }
       }
 
-      AStarVisMap.SetCell((int)startPos.x,(int)startPos.y, 4);
-      AStarVisMap.SetCell((int)goalPos.x,(int)goalPos.y, 11);
+      AStarVisMap.SetCell(0, new Vector2I((int)startPos.X,(int)startPos.Y), 4);
+      AStarVisMap.SetCell(0, new Vector2I((int)goalPos.X,(int)goalPos.Y), 11);
     }
 
     //Initialize the openList and path
@@ -238,12 +240,12 @@ public class AStar
               //If we are diagonal then we want to make sure there is a way for the agent to fit through, dont want to pass through
               //# x
               //x #
-              if(map.GetNodeAt(new Vector2(currentNode.pos.x + i,currentNode.pos.y)).state == NodeState.WallNode
-                && map.GetNodeAt(new Vector2(currentNode.pos.x,currentNode.pos.y + j)).state == NodeState.WallNode )
+              if(map.GetNodeAt(new Vector2(currentNode.pos.X + i,currentNode.pos.Y)).state == NodeState.WallNode
+                && map.GetNodeAt(new Vector2(currentNode.pos.X,currentNode.pos.Y + j)).state == NodeState.WallNode )
               continue;
             }
 
-            AStarNode iterNode = map.GetNodeAt(new Vector2(currentNode.pos.x + i,currentNode.pos.y + j));
+            AStarNode iterNode = map.GetNodeAt(new Vector2(currentNode.pos.X + i,currentNode.pos.Y + j));
             if(iterNode.state == NodeState.WallNode || iterNode.state == NodeState.ClosedList)
               continue;
 

@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/8bit Stage5 Intro.wav-539a0bb136f6d1571d334294a6737498.sample"
+type="AudioStreamWAV"
+uid="uid://ladq0p7nn52p"
+path="res://.godot/imported/8bit Stage5 Intro.wav-539a0bb136f6d1571d334294a6737498.sample"
 
 [deps]
 
 source_file="res://Assets/Music/8Bit/8bit Stage5 Intro.wav"
-dest_files=[ "res://.import/8bit Stage5 Intro.wav-539a0bb136f6d1571d334294a6737498.sample" ]
+dest_files=["res://.godot/imported/8bit Stage5 Intro.wav-539a0bb136f6d1571d334294a6737498.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0

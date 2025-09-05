@@ -1,7 +1,4 @@
-using Godot;
-using System;
-
-public class DownwardLadder : Interactable
+public partial class DownwardLadder : Interactable
 {
 
 
@@ -28,7 +25,7 @@ public class DownwardLadder : Interactable
 	}
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     base._PhysicsProcess(delta);
   }

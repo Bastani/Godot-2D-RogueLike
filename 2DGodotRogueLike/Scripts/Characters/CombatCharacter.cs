@@ -1,7 +1,6 @@
 using Godot;
-using System;
 
-public class CombatCharacter : KinematicBody2D
+public partial class CombatCharacter : CharacterBody2D
 {
   public float maxHealth = 100;
   public float currentHealth = 100;
@@ -12,22 +11,22 @@ public class CombatCharacter : KinematicBody2D
     Enemy,
     Player,
     NonCombat
-  };
+  }
 
-  public AnimatedSprite animatedSprite;
+  public AnimatedSprite2D animatedSprite;
   public ShaderMaterial shaderMaterial;
 
   public CharacterType characterType = CharacterType.NonCombat;
 
-  public float damageInvincibilityTimeLeft = 0.0f;
+  public double damageInvincibilityTimeLeft;
   public float damageMaxInvincibilityTimeLeft {get; protected set;} = 0.5f;
 
-  public float rollInvincibilityTimeLeft = 0.0f;
+  public double rollInvincibilityTimeLeft;
   public float rollMaxInvincibilityTimeLeft {get; protected set;} = 0.25f;
   
   //default stun duration on enemies after being damaged
   public float damagedStunDuration {get; protected set;} = 0.5f;
-  public float currentStunDuration = 0.0f;
+  public float currentStunDuration;
 
   //default dash cooldown
   public float dashCooldownMax {get; protected set;} = 0.5f;
@@ -36,14 +35,14 @@ public class CombatCharacter : KinematicBody2D
   protected float baseKnockBack = 500.0f;
   protected float extraKnockback = 1.0f;
 
-  public bool characterDead {get;protected set;} = false;
+  public bool characterDead {get;protected set;}
 
   protected Vector2 velocity;
 
   public virtual void CharacterDeadCallback(float damageTakenThatKilled)
   {
     //TODO play actual death animation here
-    this.QueueFree();
+    QueueFree();
   }
 
   public bool DamageCharacter(float damage, Vector2 knockback)
@@ -71,12 +70,12 @@ public class CombatCharacter : KinematicBody2D
   // Called when the node enters the scene tree for the first time.
   public override void _Ready()
   {
-    animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
+    animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite");
     shaderMaterial = animatedSprite.Material as ShaderMaterial;
   }
 
   // Called every frame. 'delta' is the elapsed time since the previous frame.
-  public override void _PhysicsProcess(float delta)
+  public override void _PhysicsProcess(double delta)
   {
     if(rollInvincibilityTimeLeft > 0)
     {
@@ -100,7 +99,7 @@ public class CombatCharacter : KinematicBody2D
   {
     if(shaderMaterial != null)
     {
-      shaderMaterial.SetShaderParam("flashing", true);
+      shaderMaterial.SetShaderParameter("flashing", true);
     }
   }
 
@@ -108,7 +107,7 @@ public class CombatCharacter : KinematicBody2D
   {
     if(shaderMaterial != null)
     {
-      shaderMaterial.SetShaderParam("flashing", false);
+      shaderMaterial.SetShaderParameter("flashing", false);
     }
   }
 }

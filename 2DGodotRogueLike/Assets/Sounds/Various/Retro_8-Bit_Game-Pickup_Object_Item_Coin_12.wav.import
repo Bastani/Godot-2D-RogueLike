@@ -1,13 +1,14 @@
 [remap]
 
 importer="wav"
-type="AudioStreamSample"
-path="res://.import/Retro_8-Bit_Game-Pickup_Object_Item_Coin_12.wav-8a49658d0b7ede1ffd1e62598b48da48.sample"
+type="AudioStreamWAV"
+uid="uid://birvulqsq3b8l"
+path="res://.godot/imported/Retro_8-Bit_Game-Pickup_Object_Item_Coin_12.wav-8a49658d0b7ede1ffd1e62598b48da48.sample"
 
 [deps]
 
 source_file="res://Assets/Sounds/Various/Retro_8-Bit_Game-Pickup_Object_Item_Coin_12.wav"
-dest_files=[ "res://.import/Retro_8-Bit_Game-Pickup_Object_Item_Coin_12.wav-8a49658d0b7ede1ffd1e62598b48da48.sample" ]
+dest_files=["res://.godot/imported/Retro_8-Bit_Game-Pickup_Object_Item_Coin_12.wav-8a49658d0b7ede1ffd1e62598b48da48.sample"]
 
 [params]
 
@@ -17,5 +18,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0
